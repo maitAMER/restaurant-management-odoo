@@ -1,2 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_restaurant_management_restaurant_management,restaurant_management.restaurant_management,model_restaurant_management_restaurant_management,base.group_user,1,1,1,1
+access_restaurant_customer,restaurant.customer,model_restaurant_customer,base.group_user,1,1,1,1
+access_restaurant_pizza_category,restaurant.pizza.category,model_restaurant_pizza_category,base.group_user,1,1,1,1
+access_restaurant_pizza,restaurant.pizza,model_restaurant_pizza,base.group_user,1,1,1,1
+access_restaurant_table,restaurant.table,model_restaurant_table,base.group_user,1,1,1,1
+access_restaurant_chef,restaurant.chef,model_restaurant_chef,base.group_user,1,1,1,1
+access_restaurant_order,restaurant.order,model_restaurant_order,base.group_user,1,1,1,1

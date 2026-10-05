@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Main Root Menu -->
+    <menuitem id="menu_restaurant_management_root"
+              name=" Restaurant management"
+              sequence="10"/>
+
+   
+    <!-- Sales Section -->
+    <menuitem id="menu_pizza_sales"
+              name="Sales"
+              parent="menu_restaurant_management_root"
+              sequence="10"/>
+
+    <menuitem id="menu_pizza_orders"
+              name="Orders"
+              parent="menu_pizza_sales"
+              action="action_pizza_order"
+              sequence="10"/>
+
+    <menuitem id="menu_pizza_customers"
+              name="Customers"
+              parent="menu_pizza_sales"
+              action="action_pizza_customer"
+              sequence="20"/>
+
+
+    <!-- Menu / Products Section -->
+    <menuitem id="menu_pizza_menu"
+              name="Menu"
+              parent="menu_restaurant_management_root"
+              sequence="20"/>
+
+    <menuitem id="menu_pizzas"
+              name="Pizzas"
+              parent="menu_pizza_menu"
+              action="action_pizza"
+              sequence="10"/>
+
+    <menuitem id="menu_pizza_categories"
+              name="Pizza Categories"
+              parent="menu_pizza_menu"
+              action="action_pizza_category"
+              sequence="20"/>
+
+
+    <!-- Restaurant Setup Section -->
+    <menuitem id="menu_pizza_restaurant"
+              name="Restaurant"
+              parent="menu_restaurant_management_root"
+              sequence="30"/>
+
+    <menuitem id="menu_pizza_tables"
+              name="Tables"
+              parent="menu_pizza_restaurant"
+              action="action_pizza_table"
+              sequence="10"/>
+
+    <menuitem id="menu_pizza_chefs"
+              name="Chefs"
+              parent="menu_pizza_restaurant"
+              action="action_pizza_chef"
+              sequence="20"/>
+
+</odoo>
