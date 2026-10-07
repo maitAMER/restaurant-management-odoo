@@ -24,6 +24,7 @@
         'views/reservation.xml',
         'views/tables.xml',
         'views/order_views.xml',
+        'views/kitchen_views.xml',
         'views/payment_views.xml',
         'views/menu.xml',
     ],
