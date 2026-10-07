@@ -27,7 +27,7 @@ class RestaurantPizza(models.Model):
 
 
 class RestaurantTable(models.Model):
-    _name = 'restaurant.table'
+    _name = 'restaurant.management.table'
     _description = 'Restaurant Table'
 
     name = fields.Char(string='Table Name', required=True)

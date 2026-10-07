@@ -60,8 +60,8 @@
 
     <!-- Tables -->
     <record id="view_pizza_table_tree" model="ir.ui.view">
-        <field name="name">restaurant.table.tree</field>
-        <field name="model">restaurant.table</field>
+        <field name="name">restaurant.management.table.tree</field>
+        <field name="model">restaurant.management.table</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
@@ -72,7 +72,7 @@
 
     <record id="action_pizza_table" model="ir.actions.act_window">
         <field name="name">Tables</field>
-        <field name="res_model">restaurant.table</field>
+        <field name="res_model">restaurant.management.table</field>
         <field name="view_mode">tree</field>
     </record>
 
