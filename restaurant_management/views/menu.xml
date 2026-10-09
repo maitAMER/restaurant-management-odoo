@@ -21,9 +21,9 @@
               action="action_restaurant_desserts"
               sequence="17"/>
 
-    <record id="menu_restaurant_appetizers" model="ir.ui.menu">
+    <!-- <record id="menu_restaurant_appetizers" model="ir.ui.menu">
         <field name="active" eval="False"/>
-    </record>
+    </record> -->
 
     <menuitem id="menu_restaurant_drinks"
               name="Drinks"
