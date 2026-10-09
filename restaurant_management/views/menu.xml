@@ -51,16 +51,26 @@
               parent="menu_restaurant_management_root"
               sequence="30"/>
 
-    <menuitem id="menu_pizza_tables"
-              name="Tables"
-              parent="menu_pizza_restaurant"
-              action="action_pizza_table"
-              sequence="10"/>
 
     <menuitem id="menu_pizza_chefs"
               name="Chefs"
               parent="menu_pizza_restaurant"
               action="action_pizza_chef"
               sequence="20"/>
+
+
+    <!--Tables -->
+    <menuitem id="menu_tables"
+              name="Tables"
+              parent="menu_restaurant_management_root"
+              action="action_table"
+              sequence="30"/>
+
+    <!-- Reservations -->
+    <menuitem id="menu_reservations"
+              name="Reservations"
+              parent="menu_restaurant_management_root"
+              action="action_reservation"
+              sequence="40"/>
 
 </odoo>

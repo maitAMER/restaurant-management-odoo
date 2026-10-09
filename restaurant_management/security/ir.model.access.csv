@@ -5,3 +5,4 @@ access_restaurant_pizza,restaurant.pizza,model_restaurant_pizza,base.group_user,
 access_restaurant_table,restaurant.table,model_restaurant_table,base.group_user,1,1,1,1
 access_restaurant_chef,restaurant.chef,model_restaurant_chef,base.group_user,1,1,1,1
 access_restaurant_order,restaurant.order,model_restaurant_order,base.group_user,1,1,1,1
+access_restaurant_reservation,restaurant.reservation,model_restaurant_reservation,base.group_user,1,1,1,1

@@ -2,3 +2,5 @@
 
 from . import models
 from . import restaurant
+from . import reservation
+from . import tables

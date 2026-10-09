@@ -18,12 +18,15 @@ Long description of module's purpose
     'version': '0.1',
 
     # any module necessary for this one to work correctly
-    'depends': ['base'],
+    'depends': ['base', 'mail'],
 
     # always loaded
     'data': [
         'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
         'views/views.xml',
+        'views/reservation.xml',
+        'views/tables.xml',
         'views/templates.xml',
         'views/menu.xml',
     ],
