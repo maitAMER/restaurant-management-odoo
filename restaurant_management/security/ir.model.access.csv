@@ -1,7 +1,11 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_restaurant_customer,restaurant.customer,model_restaurant_customer,base.group_user,1,1,1,1
-access_restaurant_pizza_category,restaurant.pizza.category,model_restaurant_pizza_category,base.group_user,1,1,1,1
-access_restaurant_pizza,restaurant.pizza,model_restaurant_pizza,base.group_user,1,1,1,1
+access_restaurant_customer_loyalty_transaction,restaurant.customer.loyalty.transaction,model_restaurant_customer_loyalty_transaction,base.group_user,1,0,1,1
+access_restaurant_customer_loyalty_wizard,restaurant.customer.loyalty.wizard,model_restaurant_customer_loyalty_wizard,base.group_user,1,1,1,1
+access_restaurant_menu_category,restaurant.menu.category,model_restaurant_menu_category,base.group_user,1,1,1,1
+access_restaurant_menu_item,restaurant.menu.item,model_restaurant_menu_item,base.group_user,1,1,1,1
+access_restaurant_menu_ingredient,restaurant.menu.ingredient,model_restaurant_menu_ingredient,base.group_user,1,1,1,1
+access_restaurant_equipment,restaurant.equipment,model_restaurant_equipment,base.group_user,1,1,1,1
+access_restaurant_equipment_maintenance,restaurant.equipment.maintenance,model_restaurant_equipment_maintenance,base.group_user,1,1,1,1
 access_restaurant_table,restaurant.table,model_restaurant_table,base.group_user,1,1,1,1
-access_restaurant_chef,restaurant.chef,model_restaurant_chef,base.group_user,1,1,1,1
-access_restaurant_order,restaurant.order,model_restaurant_order,base.group_user,1,1,1,1
+access_restaurant_reservation,restaurant.reservation,model_restaurant_reservation,base.group_user,1,1,1,1
