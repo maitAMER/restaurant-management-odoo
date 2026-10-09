@@ -45,4 +45,17 @@
               parent="menu_restaurant_management_root"
               action="action_restaurant_equipment_maintenance" 
               sequence="40"/>
+
+    <menuitem id="menu_tables"
+              name="Tables"
+              parent="menu_restaurant_management_root"
+              action="action_table"
+              sequence="50"/>
+
+    <menuitem id="menu_reservations"
+              name="Reservations"
+              parent="menu_restaurant_management_root"
+              action="action_reservation"
+              sequence="60"/>
+
 </odoo>

@@ -14,14 +14,16 @@
 
     'depends': ['base', 'mail'],
 
-
     'data': [
         'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
         'views/menu_views.xml',
         'views/customer_views.xml',
-        'views/menu.xml',
         'views/equipment_views.xml',
         'views/equipment_maintenance_views.xml',
+        'views/reservation.xml',
+        'views/tables.xml',
+        'views/menu.xml',
     ],
     'license': 'LGPL-3',
     'installable': True,
