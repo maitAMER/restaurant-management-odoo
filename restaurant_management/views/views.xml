@@ -52,7 +52,7 @@
     </record>
 
     <record id="action_pizza" model="ir.actions.act_window">
-        <field name="name">Pizzas abo yassin</field>
+        <field name="name">Pizza</field>
         <field name="res_model">restaurant.pizza</field>
         <field name="view_mode">tree</field>
     </record>
