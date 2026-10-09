@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import models
-from . import restaurant
+from . import customer
+from . import menu
+from . import equipment
+from . import equipment_maintenance

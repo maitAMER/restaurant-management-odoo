@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Menu item list -->
+    <record id="view_restaurant_menu_item_tree" model="ir.ui.view">
+        <field name="name">restaurant.menu.item.tree</field>
+        <field name="model">restaurant.menu.item</field>
+        <field name="arch" type="xml">
+            <tree string="Menu Items" default_order="menu_section, name" decoration-muted="not availability">
+                <field name="name"/>
+                <field name="pizza_type" optional="show"/>
+                <field name="size"/>
+                <field name="price"/>
+                <field name="gross_profit" string="Profit"/>
+                <field name="margin_percent" widget="percentage" string="Margin"/>
+                <field name="cost"/>
+                <field name="prep_time_display" string="Preparation Time" optional="show"/>
+                <field name="availability" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Compact list for non-pizza menu sections. -->
+    <record id="view_restaurant_nonpizza_menu_item_tree" model="ir.ui.view">
+        <field name="name">restaurant.menu.item.nonpizza.tree</field>
+        <field name="model">restaurant.menu.item</field>
+        <field name="arch" type="xml">
+            <tree string="Menu Items" default_order="name" decoration-muted="not availability">
+                <field name="name"/>
+                <field name="price"/>
+                <field name="gross_profit" string="Profit" optional="hide"/>
+                <field name="margin_percent" widget="percentage" optional="hide"/>
+                <field name="cost" optional="hide"/>
+                <field name="availability" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Menu item form -->
+    <record id="view_restaurant_menu_item_form" model="ir.ui.view">
+        <field name="name">restaurant.menu.item.form</field>
+        <field name="model">restaurant.menu.item</field>
+        <field name="arch" type="xml">
+            <form string="Menu Item">
+                <sheet>
+                    <field name="image_1920" widget="image" class="oe_avatar"/>
+                    <widget name="web_ribbon" title="Unavailable" bg_color="text-bg-danger" invisible="availability"/>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only h3 fw-bold"/>
+                        <h1 class="display-4">
+                            <field name="name" class="display-4 fw-bold" placeholder="e.g. Margherita Pizza"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Menu Details">
+                            <field name="menu_section"/>
+                            <field name="pizza_type" invisible="menu_section != 'pizza'"/>
+                            <field name="size" invisible="menu_section != 'pizza'"/>
+                            <field name="availability" widget="boolean_toggle"/>
+                            <label for="prep_time" string="Preparation Time" invisible="menu_section != 'pizza'"/>
+                            <div class="o_row" invisible="menu_section != 'pizza'">
+                                <field name="prep_time" options="{'type': 'number'}"/>
+                                <span class="text-muted">min</span>
+                            </div>
+                        </group>
+                        <group string="Pricing">
+                            <field name="price"/>
+                            <field name="cost"/>
+                            <field name="gross_profit"/>
+                            <field name="margin_percent" widget="percentage"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Ingredients" invisible="menu_section != 'pizza'">
+                            <div class="alert alert-warning" role="alert" invisible="not ingredient_warning">
+                                <field name="ingredient_warning" nolabel="1"/>
+                            </div>
+                            <field name="ingredient_line_ids" nolabel="1">
+                                <tree string="Ingredient Lines" editable="bottom">
+                                    <field name="name" placeholder="e.g. Mozzarella"/>
+                                    <field name="quantity"/>
+                                    <field name="unit"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Allergen Information">
+                            <field name="allergens" placeholder="List allergens and dietary warnings..." nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Menu item kanban cards -->
+    <record id="view_restaurant_menu_item_kanban" model="ir.ui.view">
+        <field name="name">restaurant.menu.item.kanban</field>
+        <field name="model">restaurant.menu.item</field>
+        <field name="arch" type="xml">
+            <kanban string="Menu Items" default_group_by="menu_section" class="o_kanban_small_column">
+                <field name="name"/>
+                <field name="menu_section"/>
+                <field name="pizza_type"/>
+                <field name="price"/>
+                <field name="image_1920"/>
+                <field name="prep_time_display"/>
+                <field name="availability"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_global_click o_kanban_card">
+                            <div class="text-center mb-2">
+                                <img t-if="record.image_1920.raw_value"
+                                     t-att-src="kanban_image('restaurant.menu.item', 'image_1920', record.id.raw_value)"
+                                     class="img-fluid rounded" style="max-height: 140px; object-fit: cover;" alt="Pizza image"/>
+                            </div>
+                            <div class="o_kanban_record_top mb-2">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title"><field name="name"/></strong>
+                                    <div class="text-muted"><field name="menu_section"/></div>
+                                </div>
+                                <span t-if="record.availability.raw_value" class="badge rounded-pill text-bg-success">Available</span>
+                                <span t-else="" class="badge rounded-pill text-bg-secondary">Unavailable</span>
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left text-muted">
+                                    <span t-if="record.menu_section.raw_value == 'pizza'">
+                                        <i class="fa fa-clock-o me-1" title="Preparation time"/>
+                                        <field name="prep_time_display"/>
+                                    </span>
+                                </div>
+                                <div class="oe_kanban_bottom_right fw-bold">
+                                    <field name="price"/>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Search and filters -->
+    <record id="view_restaurant_menu_item_search" model="ir.ui.view">
+        <field name="name">restaurant.menu.item.search</field>
+        <field name="model">restaurant.menu.item</field>
+        <field name="arch" type="xml">
+            <search string="Search Pizzas">
+                <field name="name" string="Menu Item"/>
+                <field name="menu_section" string="Menu Section"/>
+                <field name="pizza_type" string="Pizza Type"/>
+                <field name="ingredient_search_text" string="Ingredients"/>
+                <field name="allergens" string="Allergens"/>
+                <filter name="available" string="Available" domain="[('availability', '=', True)]"/>
+                <filter name="unavailable" string="Unavailable" domain="[('availability', '=', False)]"/>
+                <separator/>
+                <group expand="0" string="Group By">
+                    <filter name="group_category" string="Menu Section" context="{'group_by': 'menu_section'}"/>
+                    <filter name="group_availability" string="Availability" context="{'group_by': 'availability'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_restaurant_menu_items" model="ir.actions.act_window">
+        <field name="name">Pizzas</field>
+        <field name="res_model">restaurant.menu.item</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_restaurant_menu_item_search"/>
+        <field name="domain">[('menu_section', '=', 'pizza')]</field>
+        <field name="context">{'default_menu_section': 'pizza'}</field>
+    </record>
+
+    <record id="action_restaurant_desserts" model="ir.actions.act_window">
+        <field name="name">Desserts &amp; Appetizers</field>
+        <field name="res_model">restaurant.menu.item</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_restaurant_menu_item_search"/>
+        <field name="domain">[('menu_section', '=', 'dessert_appetizer')]</field>
+        <field name="context">{'default_menu_section': 'dessert_appetizer'}</field>
+    </record>
+
+    <record id="action_restaurant_drinks" model="ir.actions.act_window">
+        <field name="name">Drinks</field>
+        <field name="res_model">restaurant.menu.item</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="search_view_id" ref="view_restaurant_menu_item_search"/>
+        <field name="domain">[('menu_section', '=', 'drink')]</field>
+        <field name="context">{'default_menu_section': 'drink'}</field>
+    </record>
+
+
+    <record id="action_restaurant_menu_items_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_restaurant_menu_item_tree"/>
+        <field name="act_window_id" ref="action_restaurant_menu_items"/>
+    </record>
+    <record id="action_restaurant_desserts_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_restaurant_nonpizza_menu_item_tree"/>
+        <field name="act_window_id" ref="action_restaurant_desserts"/>
+    </record>
+    <record id="action_restaurant_drinks_tree_view" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_restaurant_nonpizza_menu_item_tree"/>
+        <field name="act_window_id" ref="action_restaurant_drinks"/>
+    </record>
+
+
+</odoo>

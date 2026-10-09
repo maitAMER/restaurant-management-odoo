@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_restaurant_equipment_tree" model="ir.ui.view">
+        <field name="name">restaurant.equipment.tree</field>
+        <field name="model">restaurant.equipment</field>
+        <field name="arch" type="xml">
+            <tree string="Restaurant Equipment" decoration-danger="status == 'out_of_service'">
+                <field name="name"/>
+                <field name="serial_number"/>
+                <field name="category"/>
+                <field name="location"/>
+                <field name="purchase_date" optional="hide"/>
+                <field name="warranty_expiry_date" optional="hide"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'working'"
+                       decoration-warning="status == 'under_maintenance'"
+                       decoration-danger="status == 'out_of_service'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_restaurant_equipment_form" model="ir.ui.view">
+        <field name="name">restaurant.equipment.form</field>
+        <field name="model">restaurant.equipment</field>
+        <field name="arch" type="xml">
+            <form string="Restaurant Equipment">
+                <header>
+                    <button name="action_view_maintenance" type="object"
+                            string="Maintenance Tickets" class="oe_highlight"
+                            invisible="not id"/>
+                    <field name="status" widget="statusbar"
+                           statusbar_visible="working,under_maintenance,out_of_service"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" placeholder="e.g. Commercial Pizza Oven"/></h1>
+                    </div>
+                    <group>
+                        <group string="Equipment Details">
+                            <field name="serial_number"/>
+                            <field name="category"/>
+                            <field name="location"/>
+                        </group>
+                        <group string="Purchase &amp; Warranty">
+                            <field name="purchase_date"/>
+                            <field name="warranty_expiry_date"/>
+                            <field name="maintenance_count"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Maintenance History">
+                            <field name="maintenance_ids" context="{'default_equipment_id': id}">
+                                <tree >
+                                    <field name="name"/>
+                                    <field name="request_date"/>
+                                    <field name="priority" widget="priority"/>
+                                    <field name="technician_id"/>
+                                    <field name="state" widget="badge"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_restaurant_equipment_search" model="ir.ui.view">
+        <field name="name">restaurant.equipment.search</field>
+        <field name="model">restaurant.equipment</field>
+        <field name="arch" type="xml">
+            <search string="Search Equipment">
+                <field name="name"/>
+                <field name="serial_number"/>
+                <field name="category"/>
+                <field name="location"/>
+                <filter name="working" string="Working" domain="[('status', '=', 'working')]"/>
+                <filter name="maintenance" string="Under Maintenance" domain="[('status', '=', 'under_maintenance')]"/>
+                <filter name="out_of_service" string="Out of Service" domain="[('status', '=', 'out_of_service')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                    <filter name="group_location" string="Location" context="{'group_by': 'location'}"/>
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_restaurant_equipment" model="ir.actions.act_window">
+        <field name="name">Equipment</field>
+        <field name="res_model">restaurant.equipment</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_restaurant_equipment_search"/>
+    </record>
+</odoo>

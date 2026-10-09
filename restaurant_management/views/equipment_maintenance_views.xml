@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_restaurant_equipment_maintenance_tree" model="ir.ui.view">
+        <field name="name">restaurant.equipment.maintenance.tree</field>
+        <field name="model">restaurant.equipment.maintenance</field>
+        <field name="arch" type="xml">
+            <tree string="Maintenance Tickets"
+                  decoration-success="state == 'resolved'"
+                  decoration-warning="state == 'in_progress'">
+                <field name="name"/>
+                <field name="equipment_id"/>
+                <field name="request_date"/>
+                <field name="priority" widget="priority"/>
+                <field name="technician_id"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'new'"
+                       decoration-warning="state == 'in_progress'"
+                       decoration-success="state == 'resolved'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_restaurant_equipment_maintenance_form" model="ir.ui.view">
+        <field name="name">restaurant.equipment.maintenance.form</field>
+        <field name="model">restaurant.equipment.maintenance</field>
+        <field name="arch" type="xml">
+            <form string="Maintenance Ticket">
+                <header>
+                    <button name="action_start" type="object" string="Start Work"
+                            class="oe_highlight" invisible="state != 'new'"/>
+                    <button name="action_resolve" type="object" string="Mark Resolved"
+                            class="oe_highlight" invisible="state == 'resolved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="new,in_progress,resolved"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1><field name="name" placeholder="e.g. Oven temperature issue"/></h1>
+                    </div>
+                    <group>
+                        <group string="Ticket Details">
+                            <field name="equipment_id"/>
+                            <field name="request_date"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                        <group string="Assignment">
+                            <field name="technician_id"/>
+                            <field name="resolution_date" readonly="state != 'resolved'"/>
+                        </group>
+                    </group>
+                    <group string="Issue Description">
+                        <field name="description" placeholder="Describe the issue and repair work..."/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_restaurant_equipment_maintenance_search" model="ir.ui.view">
+        <field name="name">restaurant.equipment.maintenance.search</field>
+        <field name="model">restaurant.equipment.maintenance</field>
+        <field name="arch" type="xml">
+            <search string="Search Maintenance Tickets">
+                <field name="name"/>
+                <field name="equipment_id"/>
+                <field name="technician_id"/>
+                <filter name="new" string="New" domain="[('state', '=', 'new')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="resolved" string="Resolved" domain="[('state', '=', 'resolved')]"/>
+                <separator/>
+                <filter name="urgent" string="Urgent" domain="[('priority', '=', '3')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_equipment" string="Equipment" context="{'group_by': 'equipment_id'}"/>
+                    <filter name="group_technician" string="Technician" context="{'group_by': 'technician_id'}"/>
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_priority" string="Priority" context="{'group_by': 'priority'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_restaurant_equipment_maintenance" model="ir.actions.act_window">
+        <field name="name">Maintenance</field>
+        <field name="res_model">restaurant.equipment.maintenance</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_restaurant_equipment_maintenance_search"/>
+    </record>
+
+
+</odoo>
