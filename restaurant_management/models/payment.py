@@ -1,6 +1,5 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
-from odoo.tools.float_utils import float_compare
 
 
 class RestaurantPayment(models.Model):
@@ -23,7 +22,10 @@ class RestaurantPayment(models.Model):
         string="Order",
         required=True,
         ondelete="restrict",
-        domain=[("state", "!=", "cancelled")],
+        domain=[
+            ("state", "!=", "cancelled"),
+            ("payment_ids", "=", False),
+        ],
     )
 
     # 3. Customer from the selected Order
@@ -43,11 +45,22 @@ class RestaurantPayment(models.Model):
     )
 
     # 5. Payment Amount
+    # Automatically gets the total amount from the selected order
     amount = fields.Float(
         string="Amount",
-        required=True,
+        compute="_compute_amount",
+        store=True,
         digits=(16, 2),
+        readonly=True,
     )
+
+    @api.depends("order_id", "order_id.total_amount")
+    def _compute_amount(self):
+        for payment in self:
+            if payment.order_id:
+                payment.amount = payment.order_id.total_amount
+            else:
+                payment.amount = 0.0
 
     # 6. Payment Method
     method = fields.Selection(
@@ -101,37 +114,25 @@ class RestaurantPayment(models.Model):
                 raise ValidationError(
                     _("Payment amount must be greater than zero.")
                 )
-
-    # 11. Prevent Total Posted Payments from Exceeding Order Total
-    @api.constrains("amount", "order_id", "state")
-    def _check_payment_amount(self):
+    # 11. Prevent Multiple Payments for the Same Order
+    @api.constrains("order_id")
+    def _check_order_payment(self):
         for payment in self:
-            if payment.state != "posted" or not payment.order_id:
+            if not payment.order_id:
                 continue
 
-            other_payments = self.search([
+            existing_payment = self.search([
                 ("order_id", "=", payment.order_id.id),
-                ("state", "=", "posted"),
                 ("id", "!=", payment.id),
-            ])
+            ], limit=1)
 
-            total_paid = (
-                sum(other_payments.mapped("amount"))
-                + payment.amount
-            )
-
-            order_total = payment.order_id.total_amount
-
-            if float_compare(
-                total_paid,
-                order_total,
-                precision_digits=2,
-            ) > 0:
+            if existing_payment:
                 raise ValidationError(
                     _(
-                        "Total payments cannot exceed the total "
-                        "amount of order %s."
-                    ) % payment.order_id.display_name
+                        "This order already has a payment. "
+                        "You cannot create another payment "
+                        "for the same order."
+                    )
                 )
 
     # 12. Confirm Payment
