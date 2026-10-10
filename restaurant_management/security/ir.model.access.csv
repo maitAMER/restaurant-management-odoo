@@ -11,3 +11,4 @@ access_restaurant_table,restaurant.table,model_restaurant_table,base.group_user,
 access_restaurant_reservation,restaurant.reservation,model_restaurant_reservation,base.group_user,1,1,1,1
 access_restaurant_order,restaurant.order,model_restaurant_order,base.group_user,1,1,1,1
 access_restaurant_order_line,restaurant.order.line,model_restaurant_order_line,base.group_user,1,1,1,1
+access_restaurant_payment,restaurant.payment,model_restaurant_payment,base.group_user,1,1,1,1
