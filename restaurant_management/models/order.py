@@ -21,6 +21,7 @@ class RestaurantOrder(models.Model):
         ('confirmed', 'Confirmed'),
         ('preparing', 'Preparing'),
         ('ready', 'Ready'),
+        ('delivered', 'Delivered'),
         ('cancelled', 'Cancelled')
     ], string='Status', required=True, default='draft')
 

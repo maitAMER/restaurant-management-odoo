@@ -28,9 +28,9 @@
 
                     <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state != 'draft'"/>
 
-                    <button name="action_start_preparing" type="object" string="Start Preparing" class="btn-secondary" invisible="state != 'confirmed'"/>
+                    <button name="action_prepare" type="object" string="Start Preparing" class="btn-secondary" invisible="state != 'confirmed'"/>
 
-                    <button name="action_mark_ready" type="object" string="Ready" class="btn-success" invisible="state != 'preparing'"/>
+                    <button name="action_ready" type="object" string="Ready" class="btn-success" invisible="state != 'preparing'"/>
                     
                     <button name="action_deliver" type="object" string="Deliver" class="btn-success" invisible="state != 'ready'"/>
 
@@ -71,6 +71,14 @@
                 </sheet>
             </form>
         </field>
-    </record>   
+    </record>
+
+    <record id="action_restaurant_orders" model="ir.actions.act_window">
+        <field name="name">Orders</field>
+        <field name="res_model">restaurant.order</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+</odoo>
 
     

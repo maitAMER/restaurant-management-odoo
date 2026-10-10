@@ -58,4 +58,10 @@
               action="action_reservation"
               sequence="60"/>
 
+    <menuitem id="menu_restaurant_orders"
+              name="Orders"
+              parent="menu_restaurant_management_root"
+              action="action_restaurant_orders"
+              sequence="70"/>
+
 </odoo>
