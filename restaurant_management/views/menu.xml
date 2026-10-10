@@ -63,5 +63,13 @@
               parent="menu_restaurant_management_root"
               action="action_restaurant_orders"
               sequence="70"/>
+                  <!-- Payments Menu -->
+    <menuitem
+                id="menu_restaurant_payment"
+                name="Payments"
+                parent="menu_restaurant_management_root"
+                action="action_restaurant_payment"
+                sequence="80"
+            />
 
 </odoo>
