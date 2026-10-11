@@ -1,5 +1,6 @@
 from odoo import api, fields, models, _
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools.float_utils import float_compare
 
 
 class RestaurantPayment(models.Model):
@@ -61,6 +62,85 @@ class RestaurantPayment(models.Model):
                 payment.amount = payment.order_id.total_amount
             else:
                 payment.amount = 0.0
+
+        # 6. Split Payment Lines
+    split_line_ids = fields.One2many(
+        comodel_name="restaurant.payment.split.line",
+        inverse_name="payment_id",
+        string="Split Payment",
+    )
+
+    # Total of all split lines
+    split_total = fields.Float(
+        string="Split Total",
+        compute="_compute_split_summary",
+        digits=(16, 2),
+    )
+
+    # Absolute difference between split total and payment amount
+    split_difference = fields.Float(
+        string="Difference",
+        compute="_compute_split_summary",
+        digits=(16, 2),
+    )
+
+    # Split Payment Validation Status
+    split_status = fields.Selection(
+        selection=[
+            ("not_used", "Not Used"),
+            ("less", "Less than Payment Amount"),
+            ("greater", "Greater than Payment Amount"),
+            ("matched", "Matched"),
+        ],
+        string="Split Status",
+        compute="_compute_split_summary",
+    )
+    # Payment Type Selection
+    standard_payment = fields.Boolean(
+        string="Standard Payment",
+        default=True,
+    )
+
+    split_payment = fields.Boolean(
+        string="Split Payment",
+        default=False,
+    )
+
+    @api.depends(
+        "amount",
+        "split_line_ids.amount",
+    )
+    def _compute_split_summary(self):
+        for payment in self:
+            if not payment.split_line_ids:
+                payment.split_total = 0.0
+                payment.split_difference = 0.0
+                payment.split_status = "not_used"
+                continue
+
+            total = sum(payment.split_line_ids.mapped("amount"))
+
+            payment.split_total = total
+            payment.split_difference = abs(
+                round(total - payment.amount, 2)
+            )
+
+            if float_compare(
+                total,
+                payment.amount,
+                precision_digits=2,
+            ) < 0:
+                payment.split_status = "less"
+
+            elif float_compare(
+                total,
+                payment.amount,
+                precision_digits=2,
+            ) > 0:
+                payment.split_status = "greater"
+
+            else:
+                payment.split_status = "matched"            
 
     # 6. Payment Method
     method = fields.Selection(
@@ -150,6 +230,49 @@ class RestaurantPayment(models.Model):
                         "or cancelled order."
                     )
                 )
+                        # Validate Split Payment Total before confirming
+            if payment.split_line_ids:
+                split_total = sum(
+                    payment.split_line_ids.mapped("amount")
+                )
+
+                comparison = float_compare(
+                    split_total,
+                    payment.amount,
+                    precision_digits=2,
+                )
+
+                difference = abs(
+                    round(split_total - payment.amount, 2)
+                )
+
+                if comparison < 0:
+                    raise UserError(
+                        _(
+                            "Split total is less than the payment "
+                            "amount by %.2f."
+                        ) % difference
+                    )
+
+                if comparison > 0:
+                    raise UserError(
+                        _(
+                            "Split total exceeds the payment "
+                            "amount by %.2f."
+                        ) % difference
+                    )
+                if payment.standard_payment and payment.split_line_ids:
+                    raise UserError(
+                        _(
+                            "You selected Standard Payment. "
+                            "Remove the split payment lines before confirming."
+                        )
+                    )
+
+                if payment.split_payment and not payment.split_line_ids:
+                    raise UserError(
+                        _("Please add at least one split payment line.")
+                    )
 
         self.write({"state": "posted"})
         return True
@@ -175,3 +298,55 @@ class RestaurantPayment(models.Model):
 
         self.write({"state": "draft"})
         return True
+
+    @api.constrains("method", "reference")
+    def _check_transaction_reference(self):
+        for payment in self:
+            requires_reference = payment.method in (
+                "card",
+                "bank_transfer",
+                "wallet",
+            )
+
+            if requires_reference and not payment.reference:
+                raise ValidationError(
+                    _("Transaction Reference is required for this payment method.")
+                )
+
+            if payment.reference:
+                existing_payment = self.search([
+                    ("reference", "=", payment.reference),
+                    ("id", "!=", payment.id),
+                ], limit=1)
+
+                if existing_payment:
+                    raise ValidationError(
+                        _("This Transaction Reference already exists.")
+                    )
+
+    @api.onchange("standard_payment")
+    def _onchange_standard_payment(self):
+        if self.standard_payment:
+            self.split_payment = False
+        else:
+            self.split_payment = True
+
+
+    @api.onchange("split_payment")
+    def _onchange_split_payment(self):
+        if self.split_payment:
+            self.standard_payment = False
+        else:
+            self.standard_payment = True
+
+
+    @api.constrains("standard_payment", "split_payment")
+    def _check_payment_type(self):
+        for payment in self:
+            if payment.standard_payment == payment.split_payment:
+                raise ValidationError(
+                    _(
+                        "Please select either Standard Payment "
+                        "or Split Payment, not both."
+                    )
+                )
