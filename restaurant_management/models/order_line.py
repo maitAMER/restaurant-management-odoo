@@ -6,7 +6,12 @@ class RestaurantOrderLine(models.Model):
 
     order_id = fields.Many2one('restaurant.order', string='Order', required=True, ondelete='cascade')
 
-    product_id = fields.Many2one('product.product', string='Product', required=True)
+    product_id = fields.Many2one(
+        'restaurant.menu.item', string='Menu Item', required=True,
+    )
+    menu_section = fields.Selection(
+        related='product_id.menu_section', string='Menu Section', readonly=True,
+    )
 
     quantity = fields.Float(string='Quantity', required=True, default=1.0)
 
@@ -22,4 +27,4 @@ class RestaurantOrderLine(models.Model):
     @api.onchange('product_id')
     def _onchange_product_id(self):
         if self.product_id:
-            self.price_unit = self.product_id.lst_price
+            self.price_unit = self.product_id.price
