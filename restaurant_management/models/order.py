@@ -26,6 +26,9 @@ class RestaurantOrder(models.Model):
     ], string='Status', required=True, default='draft')
 
     order_line_ids = fields.One2many('restaurant.order.line', 'order_id', string='Order Lines')
+        
+      #حطيت ده يا انجي علشان اعرف اربط  و مخليش الاوردر الي ادفع عليه يدفع عليه حاجه تاني
+    payment_ids = fields.One2many('restaurant.payment','order_id',string='Payments')
 
     notes= fields.Text(string='Notes')
 

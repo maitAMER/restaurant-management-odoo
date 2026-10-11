@@ -57,6 +57,7 @@
                             <field name="name" readonly="True"/>
                             <field
                                 name="order_id"
+                                domain="[('state', '!=', 'cancelled'), ('payment_ids', '=', False)]"
                                 readonly="state != 'draft'"
                             />
                             <field name="customer_id"/>
@@ -67,9 +68,9 @@
                                 name="payment_date"
                                 readonly="state != 'draft'"
                             />
-                            <field
+                            <field 
                                 name="amount"
-                                readonly="state != 'draft'"
+                                 readonly="1"
                             />
                             <field
                                 name="method"
