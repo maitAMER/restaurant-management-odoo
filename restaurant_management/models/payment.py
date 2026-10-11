@@ -156,10 +156,10 @@ class RestaurantPayment(models.Model):
         default="cash",
     )
 
-    # 7. Transaction or Receipt Reference
-    reference = fields.Char(
-        string="Transaction Reference",
-    )
+    # # 7. Transaction or Receipt Reference
+    # reference = fields.Char(
+    #     string="Transaction Reference",
+    # )
 
     # 8. Payment Status
     state = fields.Selection(
@@ -299,30 +299,30 @@ class RestaurantPayment(models.Model):
         self.write({"state": "draft"})
         return True
 
-    @api.constrains("method", "reference")
-    def _check_transaction_reference(self):
-        for payment in self:
-            requires_reference = payment.method in (
-                "card",
-                "bank_transfer",
-                "wallet",
-            )
+    # @api.constrains("method", "reference")
+    # def _check_transaction_reference(self):
+    #     for payment in self:
+    #         requires_reference = payment.method in (
+    #             "card",
+    #             "bank_transfer",
+    #             "wallet",
+    #         )
 
-            if requires_reference and not payment.reference:
-                raise ValidationError(
-                    _("Transaction Reference is required for this payment method.")
-                )
+    #         if requires_reference and not payment.reference:
+    #             raise ValidationError(
+    #                 _("Transaction Reference is required for this payment method.")
+    #             )
 
-            if payment.reference:
-                existing_payment = self.search([
-                    ("reference", "=", payment.reference),
-                    ("id", "!=", payment.id),
-                ], limit=1)
+    #         if payment.reference:
+    #             existing_payment = self.search([
+    #                 ("reference", "=", payment.reference),
+    #                 ("id", "!=", payment.id),
+    #             ], limit=1)
 
-                if existing_payment:
-                    raise ValidationError(
-                        _("This Transaction Reference already exists.")
-                    )
+    #             if existing_payment:
+    #                 raise ValidationError(
+    #                     _("This Transaction Reference already exists.")
+    #                 )
 
     @api.onchange("standard_payment")
     def _onchange_standard_payment(self):

@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+
     <!-- Payments List -->
     <record id="view_restaurant_payment_list" model="ir.ui.view">
         <field name="name">restaurant.payment.list</field>
         <field name="model">restaurant.payment</field>
         <field name="arch" type="xml">
-            <tree string="Payments">
+            <tree string="Payments"
+                decoration-warning="state == 'draft'"
+                decoration-success="state == 'posted'"
+                decoration-danger="state == 'cancelled'">
+
                 <field name="name"/>
                 <field name="order_id"/>
                 <field name="customer_id"/>
                 <field name="payment_date"/>
                 <field name="amount"/>
                 <field name="method"/>
-                <field name="state"/>
+
+                <field name="state"
+                    widget="badge"
+                    decoration-warning="state == 'draft'"
+                    decoration-success="state == 'posted'"
+                    decoration-danger="state == 'cancelled'"/>
+
             </tree>
         </field>
     </record>
@@ -95,10 +106,6 @@
 
                             <field name="method"
                                 readonly="split_payment or state != 'draft'"/>
-
-                            <field name="reference"
-                                readonly="split_payment or state != 'draft'"
-                                invisible="method not in ['card', 'bank_transfer', 'wallet']"/>
                         </group>
 
                     </group>
@@ -139,19 +146,15 @@
                             </group>
 
                             <!-- Split Payment Lines -->
-                           <field name="split_line_ids"
+                            <field name="split_line_ids"
                                 readonly="standard_payment or state != 'draft'">
+
                                 <tree editable="bottom">
                                     <field name="method"/>
-                                    <field name="amount"/>
-                                    <field name="reference"
-                                        invisible="method not in ['card', 'bank_transfer', 'wallet']"/>
+                                    <field name="amount" sum="Total Amount"/>
                                 </tree>
-                            </field>
 
-                            <group>
-                                <field name="split_total" readonly="1"/>
-                            </group>
+                            </field>
 
                         </page>
 

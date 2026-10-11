@@ -7,7 +7,6 @@ class RestaurantPaymentSplitLine(models.Model):
     _description = "Restaurant Payment Split Line"
     _order = "id"
 
-    # Link to the main Payment
     payment_id = fields.Many2one(
         comodel_name="restaurant.payment",
         string="Payment",
@@ -16,7 +15,6 @@ class RestaurantPaymentSplitLine(models.Model):
         index=True,
     )
 
-    # Payment Method for this part of the invoice
     method = fields.Selection(
         selection=[
             ("cash", "Cash"),
@@ -30,19 +28,32 @@ class RestaurantPaymentSplitLine(models.Model):
         default="cash",
     )
 
-    # Amount paid using this method
     amount = fields.Float(
         string="Amount",
         required=True,
         digits=(16, 2),
     )
 
-    # Optional Transaction Reference
-    reference = fields.Char(
-        string="Transaction Reference",
-    )
+    @api.constrains("method", "payment_id")
+    def _check_unique_payment_method(self):
+        for line in self:
+            if not line.payment_id or not line.method:
+                continue
 
-    # Each split amount must be greater than zero
+            duplicate = self.search([
+                ("payment_id", "=", line.payment_id.id),
+                ("method", "=", line.method),
+                ("id", "!=", line.id),
+            ], limit=1)
+
+            if duplicate:
+                raise ValidationError(
+                    _(
+                        "You cannot use the same payment method "
+                        "more than once in a split payment."
+                    )
+                )
+
     @api.constrains("amount")
     def _check_amount(self):
         for line in self:
@@ -50,39 +61,3 @@ class RestaurantPaymentSplitLine(models.Model):
                 raise ValidationError(
                     _("Split payment amount must be greater than zero.")
                 )
-
-    @api.constrains("method", "reference")
-    def _check_transaction_reference(self):
-        for line in self:
-            requires_reference = line.method in (
-                "card",
-                "bank_transfer",
-                "wallet",
-            )
-
-            if requires_reference and not line.reference:
-                raise ValidationError(
-                    _("Transaction Reference is required for this payment method.")
-                )
-
-            if line.reference:
-                # Check other split payment lines
-                existing_line = self.search([
-                    ("reference", "=", line.reference),
-                    ("id", "!=", line.id),
-                ], limit=1)
-
-                if existing_line:
-                    raise ValidationError(
-                        _("This Transaction Reference already exists.")
-                    )
-
-                # Check main payment records
-                existing_payment = self.env["restaurant.payment"].search([
-                    ("reference", "=", line.reference),
-                ], limit=1)
-
-                if existing_payment:
-                    raise ValidationError(
-                        _("This Transaction Reference already exists in a payment.")
-                    )
