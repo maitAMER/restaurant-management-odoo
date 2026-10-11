@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+
     <!-- Payments List -->
     <record id="view_restaurant_payment_list" model="ir.ui.view">
         <field name="name">restaurant.payment.list</field>
         <field name="model">restaurant.payment</field>
         <field name="arch" type="xml">
-            <tree string="Payments">
+            <tree string="Payments"
+                decoration-warning="state == 'draft'"
+                decoration-success="state == 'posted'"
+                decoration-danger="state == 'cancelled'">
+
                 <field name="name"/>
                 <field name="order_id"/>
                 <field name="customer_id"/>
                 <field name="payment_date"/>
                 <field name="amount"/>
                 <field name="method"/>
-                <field name="state"/>
+
+                <field name="state"
+                    widget="badge"
+                    decoration-warning="state == 'draft'"
+                    decoration-success="state == 'posted'"
+                    decoration-danger="state == 'cancelled'"/>
+
             </tree>
         </field>
     </record>
@@ -25,7 +36,9 @@
         <field name="arch" type="xml">
             <form string="Payment">
 
+                <!-- Header -->
                 <header>
+
                     <button
                         name="action_post"
                         type="object"
@@ -48,18 +61,35 @@
                         invisible="state != 'cancelled'"
                     />
 
-                    <field name="state" widget="statusbar"/>
+                    <field
+                        name="state"
+                        widget="statusbar"
+                    />
+
                 </header>
 
+                <!-- Main Sheet -->
                 <sheet>
+                <group string="Payment Type">
+                    <field name="standard_payment"/>
+                    <field name="split_payment"/>
+                </group>
+
+                    <!-- Main Payment Information -->
                     <group>
+
                         <group>
-                            <field name="name" readonly="True"/>
+                            <field
+                                name="name"
+                                readonly="1"
+                            />
+
                             <field
                                 name="order_id"
                                 domain="[('state', '!=', 'cancelled'), ('payment_ids', '=', False)]"
                                 readonly="state != 'draft'"
                             />
+
                             <field name="customer_id"/>
                         </group>
 
@@ -68,20 +98,68 @@
                                 name="payment_date"
                                 readonly="state != 'draft'"
                             />
-                            <field 
+
+                            <field
                                 name="amount"
-                                 readonly="1"
+                                readonly="1"
                             />
-                            <field
-                                name="method"
-                                readonly="state != 'draft'"
-                            />
-                            <field
-                                name="reference"
-                                readonly="state != 'draft'"
-                            />
+
+                            <field name="method"
+                                readonly="split_payment or state != 'draft'"/>
                         </group>
+
                     </group>
+
+                    <!-- Notebook Tabs -->
+                    <notebook>
+
+                        <!-- Split Payment Tab -->
+                        <page
+                            string="Split Payment"
+                            name="split_payment"
+                        >
+
+                            <!-- Split Payment Summary -->
+                            <group>
+
+                                <group>
+                                    <field
+                                        name="split_status"
+                                        widget="badge"
+                                        readonly="1"
+                                    />
+
+                                    <field
+                                        name="split_total"
+                                        readonly="1"
+                                    />
+                                </group>
+
+                                <group>
+                                    <field
+                                        name="split_difference"
+                                        readonly="1"
+                                        invisible="split_status in ('not_used', 'matched')"
+                                    />
+                                </group>
+
+                            </group>
+
+                            <!-- Split Payment Lines -->
+                            <field name="split_line_ids"
+                                readonly="standard_payment or state != 'draft'">
+
+                                <tree editable="bottom">
+                                    <field name="method"/>
+                                    <field name="amount" sum="Total Amount"/>
+                                </tree>
+
+                            </field>
+
+                        </page>
+
+                    </notebook>
+
                 </sheet>
 
             </form>
@@ -89,12 +167,13 @@
     </record>
 
     <!-- Payments Action -->
-    <record id="action_restaurant_payment" model="ir.actions.act_window">
+    <record
+        id="action_restaurant_payment"
+        model="ir.actions.act_window"
+    >
         <field name="name">Payments</field>
         <field name="res_model">restaurant.payment</field>
-        <field name="view_mode">list,form</field>
+        <field name="view_mode">tree,form</field>
     </record>
-
-
 
 </odoo>

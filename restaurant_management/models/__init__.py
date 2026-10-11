@@ -10,3 +10,4 @@ from . import restaurant
 from . import order
 from . import order_line
 from . import payment
+from . import payment_split_line
