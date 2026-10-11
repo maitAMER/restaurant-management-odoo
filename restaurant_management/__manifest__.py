@@ -12,7 +12,7 @@
     'category': 'Services/Restaurant',
     'version': '0.1',
 
-    'depends': ['base', 'mail'],
+    'depends': ['base', 'mail', 'product'],
 
     'data': [
         'security/ir.model.access.csv',
@@ -23,6 +23,8 @@
         'views/equipment_maintenance_views.xml',
         'views/reservation.xml',
         'views/tables.xml',
+        'views/order_views.xml',
+        'views/payment_views.xml',
         'views/menu.xml',
     ],
     'license': 'LGPL-3',
