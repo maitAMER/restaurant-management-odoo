@@ -7,8 +7,8 @@ class RestaurantOrder(models.Model):
 
     name = fields.Char(string='Order Reference', required=True, copy=False, readonly=True, default=lambda self: ('New'))
     
-    customer_id = fields.Many2one('res.partner', string='Customer', required=True)
-    
+    customer_id = fields.Many2one('restaurant.customer', string='Customer', required=True)
+        
     date_order = fields.Datetime(string='Order Date', required=True, default=fields.Datetime.now)
     
     order_type = fields.Selection([

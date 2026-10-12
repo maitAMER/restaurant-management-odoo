@@ -52,11 +52,11 @@
               action="action_table"
               sequence="50"/>
 
-    <menuitem id="menu_reservations"
+    <!-- <menuitem id="menu_reservations"
               name="Reservations"
               parent="menu_restaurant_management_root"
               action="action_reservation"
-              sequence="60"/>
+              sequence="60"/> -->
 
     <menuitem id="menu_restaurant_orders"
                name="Orders"

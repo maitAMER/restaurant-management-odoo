@@ -1,4 +1,4 @@
-<!-- Tables -->
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
     <!-- Action -->
@@ -7,9 +7,45 @@
         <field name="res_model">restaurant.table</field>
         <field name="view_mode">tree,form</field>
     </record>
-    
+
+    <!-- Cron: refresh table status every minute -->
+    <record id="ir_cron_refresh_table_availability" model="ir.cron">
+        <field name="name">Restaurant: Refresh Table Availability</field>
+        <field name="model_id" ref="model_restaurant_table"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_refresh_availability()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+
+    <!-- Search view -->
+    <record id="view_table_search" model="ir.ui.view">
+        <field name="name">restaurant.table.search</field>
+        <field name="model">restaurant.table</field>
+        <field name="arch" type="xml">
+            <search string="Tables">
+                <field name="name"/>
+                <field name="location"/>
+                <filter name="available" string="Available"
+                        domain="[('availability', '=', 'available')]"/>
+                <filter name="reserved" string="Reserved now"
+                        domain="[('availability', '=', 'reserved')]"/>
+                <separator/>
+                <filter name="archived" string="Archived"
+                        domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_location" string="Location"
+                            context="{'group_by': 'location'}"/>
+                    <filter name="group_status" string="Status"
+                            context="{'group_by': 'availability'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
     <!-- Tree view -->
-   <record id="view_table_tree" model="ir.ui.view">
+    <record id="view_table_tree" model="ir.ui.view">
         <field name="name">restaurant.table.tree</field>
         <field name="model">restaurant.table</field>
         <field name="arch" type="xml">
@@ -17,22 +53,32 @@
                 <field name="name"/>
                 <field name="capacity"/>
                 <field name="location"/>
-                <field name="active" widget="boolean_toggle"/>
+                <field name="availability" widget="badge"
+                       decoration-success="availability == 'available'"
+                       decoration-danger="availability == 'reserved'"/>
+                <field name="is_available" widget="boolean_toggle" readonly="1"/>
             </tree>
         </field>
     </record>
 
     <!-- Form view -->
-   <record id="view_table_form" model="ir.ui.view">
+    <record id="view_table_form" model="ir.ui.view">
         <field name="name">restaurant.table.form</field>
         <field name="model">restaurant.table</field>
         <field name="arch" type="xml">
             <form string="Restaurant Table">
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button" icon="fa-calendar" disabled="1">
+                            <field name="reservation_count" widget="statinfo"
+                                   string="Reservations"/>
+                        </button>
+                    </div>
+
                     <div class="oe_title">
                         <label for="name"/>
                         <h1>
-                            <field name="name" placeholder="e.g. T-01"/>
+                           <field name="name" placeholder="Auto-generated (T-01)"/>
                         </h1>
                     </div>
 
@@ -41,15 +87,38 @@
                             <field name="capacity"/>
                             <field name="location"/>
                         </group>
-
                         <group string="Status">
-                            <field name="active"/>
+                            <field name="is_available" widget="boolean_toggle"
+                                   readonly="1"/>
+                            <field name="availability" widget="badge"
+                                   decoration-success="availability == 'available'"
+                                   decoration-danger="availability == 'reserved'"/>
                         </group>
                     </group>
+
+                    <notebook>
+                        <page string="Reservations" name="reservations">
+                            <field name="reservation_ids">
+                                <tree editable="bottom"
+                                      decoration-muted="state in ('cancelled', 'no_show')">
+                                    <field name="name" readonly="1"/>
+                                    <field name="customer_id"/>
+                                    <field name="reservation_date"/>
+                                    <field name="duration"/>
+                                    <field name="reservation_end"/>
+                                    <field name="guests"/>
+                                    <field name="state" widget="badge"
+                                           decoration-success="state == 'confirmed'"
+                                           decoration-info="state == 'seated'"
+                                           decoration-danger="state == 'no_show'"
+                                           decoration-muted="state in ('draft', 'cancelled')"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
     </record>
-
 
 </odoo>
