@@ -5,10 +5,10 @@ from . import menu
 from . import equipment
 from . import equipment_maintenance
 from . import reservation
-from . import tables
 from . import restaurant
 from . import order
 from . import order_line
 from . import payment
 from . import payment_split_line
 from . import crm_lead
+from . import tables
