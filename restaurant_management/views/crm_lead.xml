@@ -1,0 +1,31 @@
+
+
+<odoo>
+    <record id="view_crm_lead_form_restaurant"
+            model="ir.ui.view">
+        <field name="name">crm.lead.form.restaurant</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_convert_to_order"
+                    type="object"
+                    string="Convert Lead to Order"
+                    class="oe_highlight"
+                    invisible="order_id"
+                />
+            </xpath>
+
+            <xpath expr="//sheet/group" position="inside">
+                <group string="Restaurant Details">
+                    <field name="menu_category_id"/>
+                    <field name="customer_id"/>
+                    <field name="lead_source"/>
+                    <field name="order_id"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>
