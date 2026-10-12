@@ -1,51 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="view_restaurant_menu_category_tree" model="ir.ui.view">
-        <field name="name">restaurant.menu.category.tree</field>
-        <field name="model">restaurant.menu.category</field>
-        <field name="arch" type="xml">
-            <tree string="Menu Categories">
-                <field name="sequence" widget="handle"/>
-                <field name="name"/>
-                <field name="description" optional="hide"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="view_restaurant_menu_category_form" model="ir.ui.view">
-        <field name="name">restaurant.menu.category.form</field>
-        <field name="model">restaurant.menu.category</field>
-        <field name="arch" type="xml">
-            <form string="Menu Category">
-                <sheet>
-                    <group>
-                        <field name="name"/>
-                        <field name="sequence"/>
-                    </group>
-                    <field name="description" placeholder="Describe this category..."/>
-                    <notebook>
-                        <page string="Menu Items">
-                            <field name="item_ids" readonly="1">
-                                <tree>
-                                    <field name="name"/>
-                                    <field name="menu_section"/>
-                                    <field name="price"/>
-                                    <field name="is_available"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="action_restaurant_menu_categories" model="ir.actions.act_window">
-        <field name="name">Menu Categories</field>
-        <field name="res_model">restaurant.menu.category</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
     <!-- Menu item list -->
     <record id="view_restaurant_menu_item_tree" model="ir.ui.view">
         <field name="name">restaurant.menu.item.tree</field>
