@@ -127,6 +127,41 @@ class RestaurantPayment(models.Model):
         tracking=True,
     )
 
+    # =========================
+# PAYMENT TYPE CHECKBOXES
+# =========================
+
+    standard_payment = fields.Boolean(
+        string="Standard Payment",
+        compute="_compute_payment_type_checkboxes",
+        inverse="_inverse_standard_payment",
+    )
+
+    split_payment = fields.Boolean(
+        string="Split Payment",
+        compute="_compute_payment_type_checkboxes",
+        inverse="_inverse_split_payment",
+    )
+
+
+    @api.depends("payment_type")
+    def _compute_payment_type_checkboxes(self):
+        for payment in self:
+            payment.standard_payment = payment.payment_type == "single"
+            payment.split_payment = payment.payment_type == "split"
+
+
+    def _inverse_standard_payment(self):
+        for payment in self:
+            if payment.standard_payment:
+                payment.payment_type = "single"
+
+
+    def _inverse_split_payment(self):
+        for payment in self:
+            if payment.split_payment:
+                payment.payment_type = "split"
+
     method = fields.Selection(
         selection=[
             ("cash", "Cash"),
@@ -137,12 +172,6 @@ class RestaurantPayment(models.Model):
         ],
         string="Payment Method",
         tracking=True,
-    )
-
-    reference = fields.Char(
-        string="Transaction Reference",
-        tracking=True,
-        copy=False,
     )
 
     # =========================

@@ -1,4 +1,6 @@
 from odoo import fields, models
+from odoo import api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class RestaurantPaymentSplitLine(models.Model):
@@ -29,7 +31,21 @@ class RestaurantPaymentSplitLine(models.Model):
         required=True,
         digits=(16, 2),
     )
+    @api.constrains("payment_id", "method")
+    def _check_unique_payment_method(self):
+        for line in self:
+            if not line.payment_id or not line.method:
+                continue
 
-    reference = fields.Char(
-        string="Transaction Reference",
-    )
+            other_lines = line.payment_id.split_line_ids.filtered(
+                lambda other: (
+                    other.id != line.id
+                    and other.method == line.method
+                )
+            )
+
+            if other_lines:
+                raise ValidationError(
+                    "You cannot use the same payment method "
+                    "more than once in a split payment."
+                )

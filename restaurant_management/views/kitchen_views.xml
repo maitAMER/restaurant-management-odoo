@@ -129,13 +129,5 @@
     </record>
 
 
-    <!-- Kitchen Menu -->
-    <menuitem
-        id="menu_restaurant_kitchen"
-        name="Kitchen"
-        parent="menu_restaurant_management_root"
-        action="action_restaurant_kitchen"
-        sequence="20"/>
-
 </odoo>
 

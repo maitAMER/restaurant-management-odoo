@@ -79,9 +79,18 @@
                 <!-- Main Sheet -->
                 <sheet>
 
-                    <group string="Payment Type">
-                        <field name="payment_type"
+                    <group string="Payment Type" col="4">
+
+                        <field name="standard_payment"
+                            widget="boolean"
                             readonly="state != 'draft'"/>
+
+                        <field name="split_payment"
+                            widget="boolean"
+                            readonly="state != 'draft'"/>
+
+                        <field name="payment_type" invisible="1"/>
+
                     </group>
 
                     <!-- Main Payment Information -->
@@ -93,46 +102,34 @@
                                 readonly="1"
                             />
 
-                            <field
-                                name="order_id"
+                            <field name="order_id"
                                 domain="[('state', '!=', 'cancelled'), ('payment_ids', '=', False)]"
-                                readonly="state != 'draft'"
-                            />
+                                readonly="state != 'draft'"/>
 
                             <field name="customer_id"/>
                         </group>
 
                         <group>
-                            <field
-                                name="payment_date"
-                                readonly="state != 'draft'"
-                            />
-
+                           <field name="payment_date"
+       readonly="payment_type == 'split' or state != 'draft'"/>
                             <field
                                 name="amount"
                                 readonly="1"
                             />
 
-                            <field
-                                name="tip_amount"
-                                readonly="state != 'draft'"
-                            />
+                          <field name="tip_amount"
+       readonly="payment_type == 'split' or state != 'draft'"/>
 
-                            <field
-                                name="late_fee"
-                                readonly="state != 'draft'"
-                            />
+                        <field name="late_fee"
+       readonly="payment_type == 'split' or state != 'draft'"/>
 
                             <field
                                 name="total_amount"
                                 readonly="1"
                             />
 
-                            <field name="method"
-                                readonly="payment_type == 'split' or state != 'draft'"/>
-
-                            <field name="reference"
-                                readonly="state != 'draft'"/>
+                        <field name="method"
+                            readonly="payment_type == 'split' or state != 'draft'"/>
 
                         </group>
 
@@ -142,10 +139,9 @@
                     <notebook>
 
                         <!-- Split Payment Tab -->
-                        <page
-                            string="Split Payment"
-                            name="split_payment"
-                        >
+                     <page string="Split Payment"
+                        name="split_payment"
+                        invisible="payment_type != 'split'">
 
                             <!-- Split Payment Summary -->
                             <group>
@@ -180,7 +176,6 @@
                                 <tree editable="bottom">
                                     <field name="method"/>
                                     <field name="amount" sum="Total Amount"/>
-                                    <field name="reference"/>
                                 </tree>
 
                             </field>
