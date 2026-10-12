@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- قالب بوابة العميل لعرض الطلبات ونقاط الولاء -->
+    <template id="portal_my_orders_template" name="My Orders &amp; Loyalty">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumb_seo" t-value="{'object': customer, 'title': 'My Orders'}"/>
+            
+            <div class="container py-4">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <h2>My Restaurant Orders</h2>
+                    </div>
+                    <div class="col-md-4 text-end" t-if="customer">
+                        <div class="card bg-light p-2 shadow-sm">
+                            <span class="text-muted">Loyalty Points:</span>
+                            <h4 class="text-primary mb-0" t-field="customer.loyalty_points"/>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- جدول الطلبات -->
+                <t t-if="not orders">
+                    <div class="alert alert-info">
+                        You haven't placed any orders yet. <a href="/menu" class="alert-link">Browse our menu</a> and place your first order!
+                    </div>
+                </t>
+                <t t-else="">
+                    <div class="table-responsive">
+                        <table class="table table-hover bg-white shadow-sm rounded">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Order Reference</th>
+                                    <th>Order Type</th>
+                                    <th>Reservation Time</th>
+                                    <th>Total Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="orders" t-as="order">
+                                    <tr>
+                                        <td>
+                                            <strong t-field="order.name"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="order.order_type" class="badge bg-secondary"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="order.reservation_time"/>
+                                        </td>
+                                        <td>
+                                            <span t-field="order.total_amount"/> EGP
+                                        </td>
+                                        <td>
+                                            <span t-field="order.state" class="badge bg-info"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>
