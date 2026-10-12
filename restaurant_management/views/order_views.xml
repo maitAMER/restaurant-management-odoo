@@ -4,10 +4,8 @@
 
     <!-- Orders List View -->
     <record id="view_order_tree" model="ir.ui.view">
-
         <field name="name">order.tree</field>
         <field name="model">restaurant.order</field>
-
         <field name="arch" type="xml">
 
             <tree string="Orders">
@@ -22,7 +20,6 @@
             </tree>
 
         </field>
-
     </record>
 
 
@@ -30,11 +27,16 @@
     <record id="view_order_form" model="ir.ui.view">
 
         <field name="name">restaurant.order.form</field>
+
         <field name="model">restaurant.order</field>
 
         <field name="arch" type="xml">
 
             <form string="Order">
+
+                <!-- ========================= -->
+                <!-- ORDER BUTTONS -->
+                <!-- ========================= -->
 
                 <header>
 
@@ -61,6 +63,7 @@
                         class="btn-success"
                         invisible="state != 'preparing'"
                     />
+
                     <button
                         name="action_complete"
                         type="object"
@@ -69,10 +72,12 @@
                         invisible="state != 'ready'"
                     />
 
-                    <button name="action_cancel"
+                    <button
+                        name="action_cancel"
                         string="Cancel"
                         type="object"
-                        invisible="state in ['completed', 'cancelled', 'no_show']"/>
+                        invisible="state in ['completed', 'cancelled', 'no_show']"
+                    />
 
                     <field
                         name="state"
@@ -85,6 +90,10 @@
 
                 <sheet>
 
+                    <!-- ========================= -->
+                    <!-- ORDER NAME -->
+                    <!-- ========================= -->
+
                     <div class="oe_title">
 
                         <h1>
@@ -94,20 +103,94 @@
                     </div>
 
 
+                    <!-- ========================= -->
+                    <!-- BASIC ORDER INFORMATION -->
+                    <!-- ========================= -->
+
                     <group>
 
                         <group>
+
                             <field name="customer_id"/>
-                            <field name="reservation_time"/>                
+
+                            <field name="order_type"/>
+
                         </group>
 
+
                         <group>
-                            <field name="order_type"/>
-                            <field name="total_amount" readonly="1"/>
+
+                            <field
+                                name="total_amount"
+                                readonly="1"
+                            />
+
                         </group>
 
                     </group>
 
+
+                    <!-- ========================= -->
+                    <!-- DINE IN INFORMATION -->
+                    <!-- ========================= -->
+
+                    <group
+                        string="Dine In Information"
+                        invisible="order_type != 'dine_in'"
+                    >
+
+                        <!--
+                            This field will contain the tables
+                            that are available for the selected
+                            reservation time.
+                        -->
+                        <field
+                            name="available_table_ids"
+                            invisible="1"
+                        />
+
+
+                        <field
+                            name="table_id"
+                            domain="[('id', 'in', available_table_ids)]"
+                        />
+
+
+                        <field name="reservation_time"/>
+
+
+                        <field name="duration_minutes"/>
+
+
+                        <field
+                            name="end_time"
+                            readonly="1"
+                        />
+
+                    </group>
+
+
+                    <!-- ========================= -->
+                    <!-- DELIVERY INFORMATION -->
+                    <!-- ========================= -->
+
+                    <group
+                        string="Delivery Information"
+                        invisible="order_type != 'delivery'"
+                    >
+
+                        <field name="delivery_address"/>
+
+                        <field name="driver_id"/>
+
+                        <field name="delivery_fee"/>
+
+                    </group>
+
+
+                    <!-- ========================= -->
+                    <!-- ORDER LINES -->
+                    <!-- ========================= -->
 
                     <notebook>
 
@@ -117,13 +200,39 @@
 
                                 <tree editable="bottom">
 
-                                    <field name="menu_item_id" string="Menu Item" required="1"/>
+                                    <field
+                                        name="menu_item_id"
+                                        string="Menu Item"
+                                        required="1"
+                                    />
+
                                     <field name="quantity"/>
-                                    <field name="unit_price" string="Unit Price"/>
-                                    <field name="price_subtotal" readonly="1"/>
-                                    <field name="tax_amount" string="Tax Amount"/>
-                                    <field name="total_amount" readonly="1"/>
-                                    <field name="notes" placeholder="e.g., special instructions"/>
+
+                                    <field
+                                        name="unit_price"
+                                        string="Unit Price"
+                                    />
+
+                                    <field
+                                        name="price_subtotal"
+                                        readonly="1"
+                                    />
+
+                                    <field
+                                        name="tax_amount"
+                                        string="Tax Amount"
+                                    />
+
+                                    <field
+                                        name="total_amount"
+                                        readonly="1"
+                                    />
+
+                                    <field
+                                        name="notes"
+                                        placeholder="e.g., special instructions"
+                                    />
+
                                 </tree>
 
                             </field>
@@ -141,14 +250,24 @@
     </record>
 
 
-    <!-- Orders Action -->
+    <!-- ========================= -->
+    <!-- ORDERS ACTION -->
+    <!-- ========================= -->
+
     <record id="action_restaurant_orders" model="ir.actions.act_window">
 
         <field name="name">Orders</field>
+
         <field name="res_model">restaurant.order</field>
+
         <field name="view_mode">tree,form</field>
 
     </record>
+
+
+    <!-- ========================= -->
+    <!-- CLOSE STALE ORDERS CRON -->
+    <!-- ========================= -->
 
     <record id="ir_cron_close_stale_orders" model="ir.cron">
 
@@ -167,8 +286,5 @@
         <field name="active">True</field>
 
     </record>
+
 </odoo>
-
-
-
-    
