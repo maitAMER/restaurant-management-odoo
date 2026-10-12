@@ -6,18 +6,22 @@ from odoo.tools.float_utils import float_compare
 class RestaurantPayment(models.Model):
     _name = "restaurant.payment"
     _description = "Restaurant Payment"
+    _inherit = ["mail.thread", "mail.activity.mixin"]
     _order = "payment_date desc, id desc"
 
-    # 1. Payment Reference
+    # =========================
+    # BASIC INFORMATION
+    # =========================
+
     name = fields.Char(
         string="Payment Reference",
         required=True,
         readonly=True,
         copy=False,
         default="New",
+        tracking=True,
     )
 
-    # 2. Related Order
     order_id = fields.Many2one(
         comodel_name="restaurant.order",
         string="Order",
@@ -27,9 +31,9 @@ class RestaurantPayment(models.Model):
             ("state", "!=", "cancelled"),
             ("payment_ids", "=", False),
         ],
+        tracking=True,
     )
 
-    # 3. Customer from the selected Order
     customer_id = fields.Many2one(
         comodel_name="res.partner",
         string="Customer",
@@ -38,142 +42,203 @@ class RestaurantPayment(models.Model):
         readonly=True,
     )
 
-    # 4. Payment Date
     payment_date = fields.Datetime(
         string="Payment Date",
         required=True,
         default=fields.Datetime.now,
+        tracking=True,
     )
 
-    # 5. Payment Amount
-    # Automatically gets the total amount from the selected order
+    # =========================
+    # AMOUNTS
+    # =========================
+
     amount = fields.Float(
-        string="Amount",
+        string="Order Amount",
         compute="_compute_amount",
         store=True,
-        digits=(16, 2),
         readonly=True,
+        digits=(16, 2),
+    )
+
+    tip_amount = fields.Float(
+        string="Tip",
+        default=0.0,
+        digits=(16, 2),
+    )
+
+    late_fee = fields.Float(
+        string="Late Fee",
+        default=0.0,
+        digits=(16, 2),
+    )
+
+    total_amount = fields.Float(
+        string="Total Amount",
+        compute="_compute_total_amount",
+        store=True,
+        readonly=True,
+        digits=(16, 2),
     )
 
     @api.depends("order_id", "order_id.total_amount")
     def _compute_amount(self):
         for payment in self:
-            if payment.order_id:
-                payment.amount = payment.order_id.total_amount
-            else:
-                payment.amount = 0.0
-
-        # 6. Split Payment Lines
-    split_line_ids = fields.One2many(
-        comodel_name="restaurant.payment.split.line",
-        inverse_name="payment_id",
-        string="Split Payment",
-    )
-
-    # Total of all split lines
-    split_total = fields.Float(
-        string="Split Total",
-        compute="_compute_split_summary",
-        digits=(16, 2),
-    )
-
-    # Absolute difference between split total and payment amount
-    split_difference = fields.Float(
-        string="Difference",
-        compute="_compute_split_summary",
-        digits=(16, 2),
-    )
-
-    # Split Payment Validation Status
-    split_status = fields.Selection(
-        selection=[
-            ("not_used", "Not Used"),
-            ("less", "Less than Payment Amount"),
-            ("greater", "Greater than Payment Amount"),
-            ("matched", "Matched"),
-        ],
-        string="Split Status",
-        compute="_compute_split_summary",
-    )
-    # Payment Type Selection
-    standard_payment = fields.Boolean(
-        string="Standard Payment",
-        default=True,
-    )
-
-    split_payment = fields.Boolean(
-        string="Split Payment",
-        default=False,
-    )
-
-    @api.depends(
-        "amount",
-        "split_line_ids.amount",
-    )
-    def _compute_split_summary(self):
-        for payment in self:
-            if not payment.split_line_ids:
-                payment.split_total = 0.0
-                payment.split_difference = 0.0
-                payment.split_status = "not_used"
-                continue
-
-            total = sum(payment.split_line_ids.mapped("amount"))
-
-            payment.split_total = total
-            payment.split_difference = abs(
-                round(total - payment.amount, 2)
+            payment.amount = (
+                payment.order_id.total_amount
+                if payment.order_id
+                else 0.0
             )
 
-            if float_compare(
-                total,
-                payment.amount,
-                precision_digits=2,
-            ) < 0:
-                payment.split_status = "less"
+    @api.depends("amount", "tip_amount", "late_fee")
+    def _compute_total_amount(self):
+        for payment in self:
+            payment.total_amount = (
+                payment.amount
+                + payment.tip_amount
+                + payment.late_fee
+            )
 
-            elif float_compare(
-                total,
-                payment.amount,
-                precision_digits=2,
-            ) > 0:
-                payment.split_status = "greater"
+    @api.constrains("tip_amount", "late_fee")
+    def _check_extra_amounts(self):
+        for payment in self:
+            if payment.tip_amount < 0:
+                raise ValidationError(
+                    _("Tip cannot be negative.")
+                )
 
-            else:
-                payment.split_status = "matched"            
+            if payment.late_fee < 0:
+                raise ValidationError(
+                    _("Late Fee cannot be negative.")
+                )
 
-    # 6. Payment Method
+    # =========================
+    # PAYMENT METHOD
+    # =========================
+
+    payment_type = fields.Selection(
+        selection=[
+            ("single", "Single Payment"),
+            ("split", "Split Payment"),
+        ],
+        string="Payment Type",
+        required=True,
+        default="single",
+        tracking=True,
+    )
+
     method = fields.Selection(
         selection=[
             ("cash", "Cash"),
             ("card", "Card"),
             ("bank_transfer", "Bank Transfer"),
             ("wallet", "Wallet"),
-            ("on_account", "On Account"),
+            ("online", "Online Payment"),
         ],
         string="Payment Method",
-        required=True,
-        default="cash",
+        tracking=True,
     )
 
-    # # 7. Transaction or Receipt Reference
-    # reference = fields.Char(
-    #     string="Transaction Reference",
-    # )
+    reference = fields.Char(
+        string="Transaction Reference",
+        tracking=True,
+        copy=False,
+    )
 
-    # 8. Payment Status
+    # =========================
+    # SPLIT PAYMENT
+    # =========================
+
+    split_line_ids = fields.One2many(
+        comodel_name="restaurant.payment.split.line",
+        inverse_name="payment_id",
+        string="Split Payment Lines",
+        copy=True,
+    )
+
+    split_total = fields.Float(
+        string="Split Total",
+        compute="_compute_split_summary",
+        store=True,
+        digits=(16, 2),
+    )
+
+    split_difference = fields.Float(
+        string="Remaining Amount",
+        compute="_compute_split_summary",
+        store=True,
+        digits=(16, 2),
+    )
+
+    split_status = fields.Selection(
+        selection=[
+            ("empty", "No Split Lines"),
+            ("incomplete", "Amount Incomplete"),
+            ("excess", "Amount Exceeds Total"),
+            ("balanced", "Balanced"),
+        ],
+        string="Split Status",
+        compute="_compute_split_summary",
+        store=True,
+    )
+
+    @api.depends(
+        "split_line_ids.amount",
+        "total_amount",
+        "payment_type",
+    )
+    def _compute_split_summary(self):
+        for payment in self:
+            split_total = sum(
+                payment.split_line_ids.mapped("amount")
+            )
+
+            payment.split_total = split_total
+            payment.split_difference = (
+                payment.total_amount - split_total
+            )
+
+            if not payment.split_line_ids:
+                payment.split_status = "empty"
+
+            elif float_compare(
+                split_total,
+                payment.total_amount,
+                precision_digits=2,
+            ) == 0:
+                payment.split_status = "balanced"
+
+            elif float_compare(
+                split_total,
+                payment.total_amount,
+                precision_digits=2,
+            ) < 0:
+                payment.split_status = "incomplete"
+
+            else:
+                payment.split_status = "excess"
+
+    # =========================
+    # PAYMENT STATE
+    # =========================
+
     state = fields.Selection(
         selection=[
             ("draft", "Draft"),
-            ("posted", "Posted"),
-            ("cancelled", "Cancelled"),
+            ("pending", "Pending"),
+            ("paid", "Paid"),
+            ("refunded", "Refunded"),
         ],
         string="Status",
         required=True,
         default="draft",
+        tracking=True,
     )
 
-    # 9. Generate Payment Reference Automatically
+    # =========================
+    # CREATE PAYMENT REFERENCE
+    # =========================
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -181,172 +246,124 @@ class RestaurantPayment(models.Model):
                 vals["name"] = (
                     self.env["ir.sequence"].next_by_code(
                         "restaurant.payment"
-                    ) or "New"
+                    )
+                    or "New"
                 )
 
         return super().create(vals_list)
 
-    # 10. Payment Amount Must Be Greater Than Zero
-    @api.constrains("amount")
-    def _check_amount(self):
-        for payment in self:
-            if payment.amount <= 0:
-                raise ValidationError(
-                    _("Payment amount must be greater than zero.")
-                )
-    # 11. Prevent Multiple Payments for the Same Order
-    @api.constrains("order_id")
-    def _check_order_payment(self):
+    # =========================
+    # CHECK PAYMENT DATA
+    # =========================
+
+    def _check_payment_data(self):
         for payment in self:
             if not payment.order_id:
-                continue
-
-            existing_payment = self.search([
-                ("order_id", "=", payment.order_id.id),
-                ("id", "!=", payment.id),
-            ], limit=1)
-
-            if existing_payment:
-                raise ValidationError(
-                    _(
-                        "This order already has a payment. "
-                        "You cannot create another payment "
-                        "for the same order."
-                    )
-                )
-
-    # 12. Confirm Payment
-    def action_post(self):
-        for payment in self:
-            if payment.state != "draft":
                 raise UserError(
-                    _("Only draft payments can be posted.")
+                    _("Please select an order.")
                 )
 
-            if payment.order_id.state in ("draft", "cancelled"):
+            if payment.total_amount <= 0:
                 raise UserError(
-                    _(
-                        "You cannot post a payment for a draft "
-                        "or cancelled order."
-                    )
-                )
-                        # Validate Split Payment Total before confirming
-            if payment.split_line_ids:
-                split_total = sum(
-                    payment.split_line_ids.mapped("amount")
+                    _("The total payment amount must be greater than zero.")
                 )
 
-                comparison = float_compare(
-                    split_total,
-                    payment.amount,
-                    precision_digits=2,
-                )
-
-                difference = abs(
-                    round(split_total - payment.amount, 2)
-                )
-
-                if comparison < 0:
+            if payment.payment_type == "single":
+                if not payment.method:
                     raise UserError(
-                        _(
-                            "Split total is less than the payment "
-                            "amount by %.2f."
-                        ) % difference
+                        _("Please select a payment method.")
                     )
 
-                if comparison > 0:
-                    raise UserError(
-                        _(
-                            "Split total exceeds the payment "
-                            "amount by %.2f."
-                        ) % difference
-                    )
-                if payment.standard_payment and payment.split_line_ids:
-                    raise UserError(
-                        _(
-                            "You selected Standard Payment. "
-                            "Remove the split payment lines before confirming."
-                        )
-                    )
-
-                if payment.split_payment and not payment.split_line_ids:
+            elif payment.payment_type == "split":
+                if not payment.split_line_ids:
                     raise UserError(
                         _("Please add at least one split payment line.")
                     )
 
-        self.write({"state": "posted"})
-        return True
+                for line in payment.split_line_ids:
+                    if line.amount <= 0:
+                        raise UserError(
+                            _("Each split payment amount must be greater than zero.")
+                        )
 
-    # 13. Cancel Payment
-    def action_cancel(self):
+                if float_compare(
+                    payment.split_total,
+                    payment.total_amount,
+                    precision_digits=2,
+                ) != 0:
+                    raise UserError(
+                        _(
+                            "The sum of split payment lines must equal "
+                            "the total amount.\n"
+                            "Total Amount: %(total).2f\n"
+                            "Split Total: %(split).2f"
+                        )
+                        % {
+                            "total": payment.total_amount,
+                            "split": payment.split_total,
+                        }
+                    )
+
+    # =========================
+    # ACTIONS
+    # =========================
+
+    def action_submit(self):
         for payment in self:
-            if payment.state != "posted":
+            if payment.state != "draft":
                 raise UserError(
-                    _("Only posted payments can be cancelled.")
+                    _("Only draft payments can be submitted.")
                 )
 
-        self.write({"state": "cancelled"})
-        return True
+            payment._check_payment_data()
+            payment.state = "pending"
 
-    # 14. Reset Cancelled Payment to Draft
+    def action_post(self):
+        """Mark the payment as paid."""
+        for payment in self:
+            if payment.state != "pending":
+                raise UserError(
+                    _("Only pending payments can be marked as paid.")
+                )
+
+            payment._check_payment_data()
+            payment.state = "paid"
+
+    def action_refund(self):
+        for payment in self:
+            if payment.state != "paid":
+                raise UserError(
+                    _("Only paid payments can be refunded.")
+                )
+
+            payment.state = "refunded"
+
     def action_draft(self):
         for payment in self:
-            if payment.state != "cancelled":
+            if payment.state not in ("pending", "refunded"):
                 raise UserError(
-                    _("Only cancelled payments can be reset to draft.")
+                    _("Only pending or refunded payments can return to draft.")
                 )
 
-        self.write({"state": "draft"})
-        return True
+            payment.state = "draft"
 
-    # @api.constrains("method", "reference")
-    # def _check_transaction_reference(self):
-    #     for payment in self:
-    #         requires_reference = payment.method in (
-    #             "card",
-    #             "bank_transfer",
-    #             "wallet",
-    #         )
+    # =========================
+    # PREVENT DUPLICATE PAYMENT
+    # =========================
 
-    #         if requires_reference and not payment.reference:
-    #             raise ValidationError(
-    #                 _("Transaction Reference is required for this payment method.")
-    #             )
-
-    #         if payment.reference:
-    #             existing_payment = self.search([
-    #                 ("reference", "=", payment.reference),
-    #                 ("id", "!=", payment.id),
-    #             ], limit=1)
-
-    #             if existing_payment:
-    #                 raise ValidationError(
-    #                     _("This Transaction Reference already exists.")
-    #                 )
-
-    @api.onchange("standard_payment")
-    def _onchange_standard_payment(self):
-        if self.standard_payment:
-            self.split_payment = False
-        else:
-            self.split_payment = True
-
-
-    @api.onchange("split_payment")
-    def _onchange_split_payment(self):
-        if self.split_payment:
-            self.standard_payment = False
-        else:
-            self.standard_payment = True
-
-
-    @api.constrains("standard_payment", "split_payment")
-    def _check_payment_type(self):
+    @api.constrains("order_id")
+    def _check_one_payment_per_order(self):
         for payment in self:
-            if payment.standard_payment == payment.split_payment:
-                raise ValidationError(
-                    _(
-                        "Please select either Standard Payment "
-                        "or Split Payment, not both."
+            if payment.order_id:
+                duplicate = self.search_count([
+                    ("order_id", "=", payment.order_id.id),
+                    ("id", "!=", payment.id),
+                ])
+
+                if duplicate:
+                    raise ValidationError(
+                        _(
+                            "This order already has a payment record. "
+                            "Use the existing payment record instead."
+                        )
                     )
-                )
