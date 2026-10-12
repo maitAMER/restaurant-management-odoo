@@ -263,6 +263,22 @@ class RestaurantPayment(models.Model):
         default="draft",
         tracking=True,
     )
+        # =========================
+    # REFUND INFORMATION
+    # =========================
+
+    refunded_by = fields.Many2one(
+        comodel_name="res.users",
+        string="Refunded By",
+        readonly=True,
+        copy=False,
+    )
+
+    refunded_at = fields.Datetime(
+        string="Refund Date",
+        readonly=True,
+        copy=False,
+    )
 
     # =========================
     # CREATE PAYMENT REFERENCE
@@ -365,7 +381,11 @@ class RestaurantPayment(models.Model):
                     _("Only paid payments can be refunded.")
                 )
 
-            payment.state = "refunded"
+            payment.write({
+                "state": "refunded",
+                "refunded_by": self.env.user.id,
+                "refunded_at": fields.Datetime.now(),
+            })
 
     def action_draft(self):
         for payment in self:
