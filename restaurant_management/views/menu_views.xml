@@ -14,7 +14,7 @@
                 <field name="margin_percent" widget="percentage" string="Margin"/>
                 <field name="cost"/>
                 <field name="prep_time_display" string="Preparation Time" optional="show"/>
-                <field name="availability" widget="boolean_toggle"/>
+                <field name="availability" readonly="1"/>
             </tree>
         </field>
     </record>
@@ -30,7 +30,7 @@
                 <field name="gross_profit" string="Profit" optional="hide"/>
                 <field name="margin_percent" widget="percentage" optional="hide"/>
                 <field name="cost" optional="hide"/>
-                <field name="availability" widget="boolean_toggle"/>
+                <field name="availability" readonly="1"/>
             </tree>
         </field>
     </record>
@@ -64,8 +64,8 @@
                             </div>
                         </group>
                         <group string="Pricing">
-                            <field name="price"/>
-                            <field name="cost"/>
+                            <field name="price" required="1"/>
+                            <field name="cost" required="1"/>
                             <field name="gross_profit"/>
                             <field name="margin_percent" widget="percentage"/>
                         </group>
@@ -168,7 +168,7 @@
     </record>
 
     <record id="action_restaurant_menu_items" model="ir.actions.act_window">
-        <field name="name">Pizzas</field>
+        <field name="name">Pizza</field>
         <field name="res_model">restaurant.menu.item</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="search_view_id" ref="view_restaurant_menu_item_search"/>

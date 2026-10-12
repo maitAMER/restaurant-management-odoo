@@ -9,6 +9,9 @@ class RestaurantCustomer(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Restaurant Customer'
 
+    customer_reference = fields.Char(
+        string='Customer Reference', readonly=True, copy=False, index=True,
+    )
     name = fields.Char(string='Name', required=True, tracking=True)
     image_1920 = fields.Image(string='Customer Image', max_width=1920, max_height=1920)
     customer_type = fields.Selection(
@@ -30,6 +33,15 @@ class RestaurantCustomer(models.Model):
     company_website = fields.Char(string='Company Website')
     contact_person = fields.Char(string='Contact Person', tracking=True)
     contact_person_mobile = fields.Char(string='Contact Person Mobile', tracking=True)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if not vals.get('customer_reference'):
+                vals['customer_reference'] = (
+                    self.env['ir.sequence'].next_by_code('restaurant.customer') or '/'
+                )
+        return super().create(vals_list)
 
     @api.depends('mobile', 'company_tax_id')
     def _compute_normalized_identifiers(self):

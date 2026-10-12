@@ -34,6 +34,21 @@ class RestaurantOrder(models.Model):
 
     total_amount = fields.Float(string='Total Amount', compute='_compute_total_amount', store=True)
 
+    order_items = fields.Text(
+    string='Order Items',
+    compute='_compute_order_items')
+
+    @api.depends('order_line_ids.product_id', 'order_line_ids.quantity')
+    def _compute_order_items(self):
+        for order in self:
+            items = []
+
+            for line in order.order_line_ids:
+                items.append(
+                    f"{line.quantity} x {line.product_id.name}" )
+
+            order.order_items = '\n'.join(items)
+
     @api.depends('order_line_ids.subtotal')
     def _compute_total_amount(self):
         for order in self:

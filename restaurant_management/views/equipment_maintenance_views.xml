@@ -91,5 +91,4 @@
         <field name="search_view_id" ref="view_restaurant_equipment_maintenance_search"/>
     </record>
 
-
 </odoo>

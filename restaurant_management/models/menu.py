@@ -21,7 +21,7 @@ class RestaurantMenuItem(models.Model):
     image_1920 = fields.Image(string='Pizza Image', max_width=1920, max_height=1920)
     # Retained for compatibility with records created before menu sections were added.
     category_id = fields.Many2one(
-        'restaurant.menu.category', string='Legacy Pizza Category',
+        'restaurant.menu.category', string='Pizza Category',
         ondelete='restrict', tracking=True,
     )
     menu_section = fields.Selection(
@@ -36,15 +36,23 @@ class RestaurantMenuItem(models.Model):
         tracking=True,
     )
     pizza_type = fields.Selection(
-        [
-            ('roman', 'Roman'),
-            ('pepperoni', 'Pepperoni'),
-            ('margherita', 'Margherita'),
-            ('other', 'Other'),
-        ],
-        string='Pizza Type',
-        tracking=True,
-    )
+            [
+                ('pepperoni', 'Pepperoni'),
+                ('margherita', 'Margherita'),
+                ('hawaiian', 'Hawaiian'),
+                ('meat_lovers', 'Meat Lovers'),
+                ('supreme', 'Supreme'),
+                ('bbq_chicken', 'BBQ Chicken'),
+                ('quattro_formaggi', 'Four Cheese'),
+                ('vegetarian', 'Vegetarian'),
+                ('neapolitan', 'Neapolitan'),
+                ('sicilian', 'Sicilian'),
+                ('roman', 'Roman'),
+                ('other', 'Other'),
+            ],
+            string='Pizza Type',
+            tracking=True,
+        )
     size = fields.Selection(
         [
             ('small', 'Small'),
@@ -59,7 +67,7 @@ class RestaurantMenuItem(models.Model):
     )
     
     price = fields.Float(string='Price', required=True, digits='Product Price', tracking=True)
-    cost = fields.Float(string='Cost', digits='Product Price', tracking=True)
+    cost = fields.Float(string='Cost', required=True, digits='Product Price', tracking=True)
     gross_profit = fields.Float(string='Profit', compute='_compute_profit', digits='Product Price')
     margin_percent = fields.Float(string='Margin %', compute='_compute_profit', digits=(16, 2))
     prep_time = fields.Integer(
@@ -114,8 +122,12 @@ class RestaurantMenuItem(models.Model):
     @api.constrains('price', 'cost', 'prep_time')
     def _check_nonnegative_values(self):
         for item in self:
-            if item.price < 0 or item.cost < 0 or item.prep_time < 0:
-                raise ValidationError('Price, cost, and preparation time cannot be negative.')
+            if item.price <= 0:
+                raise ValidationError('Enter a price greater than zero.')
+            if item.cost <= 0:
+                raise ValidationError('Enter a cost greater than zero.')
+            if item.prep_time <= 0:
+                raise ValidationError('Preparation time cannot be negative.')
 
     @api.depends('ingredient_line_ids')
     def _compute_ingredient_status(self):
