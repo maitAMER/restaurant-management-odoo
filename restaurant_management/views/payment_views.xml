@@ -1,29 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-
     <!-- Payments List -->
     <record id="view_restaurant_payment_list" model="ir.ui.view">
         <field name="name">restaurant.payment.list</field>
         <field name="model">restaurant.payment</field>
         <field name="arch" type="xml">
             <tree string="Payments"
-                decoration-warning="state == 'draft'"
-                decoration-success="state == 'posted'"
-                decoration-danger="state == 'cancelled'">
+                decoration-warning="state in ('draft', 'pending')"
+                decoration-success="state == 'paid'"
+                decoration-danger="state == 'refunded'">
 
                 <field name="name"/>
                 <field name="order_id"/>
                 <field name="customer_id"/>
                 <field name="payment_date"/>
                 <field name="amount"/>
+                <field name="total_amount"/>
                 <field name="method"/>
 
                 <field name="state"
                     widget="badge"
-                    decoration-warning="state == 'draft'"
-                    decoration-success="state == 'posted'"
-                    decoration-danger="state == 'cancelled'"/>
+                    decoration-warning="state in ('draft', 'pending')"
+                    decoration-success="state == 'paid'"
+                    decoration-danger="state == 'refunded'"/>
 
             </tree>
         </field>
@@ -40,25 +40,33 @@
                 <header>
 
                     <button
-                        name="action_post"
+                        name="action_submit"
                         type="object"
-                        string="Confirm Payment"
+                        string="Submit Payment"
                         class="oe_highlight"
                         invisible="state != 'draft'"
                     />
 
                     <button
-                        name="action_cancel"
+                        name="action_post"
                         type="object"
-                        string="Cancel Payment"
-                        invisible="state != 'posted'"
+                        string="Mark as Paid"
+                        class="oe_highlight"
+                        invisible="state != 'pending'"
+                    />
+
+                    <button
+                        name="action_refund"
+                        type="object"
+                        string="Refund"
+                        invisible="state != 'paid'"
                     />
 
                     <button
                         name="action_draft"
                         type="object"
                         string="Reset to Draft"
-                        invisible="state != 'cancelled'"
+                        invisible="state not in ['pending', 'refunded']"
                     />
 
                     <field
@@ -70,10 +78,11 @@
 
                 <!-- Main Sheet -->
                 <sheet>
-                <group string="Payment Type">
-                    <field name="standard_payment"/>
-                    <field name="split_payment"/>
-                </group>
+
+                    <group string="Payment Type">
+                        <field name="payment_type"
+                            readonly="state != 'draft'"/>
+                    </group>
 
                     <!-- Main Payment Information -->
                     <group>
@@ -104,8 +113,27 @@
                                 readonly="1"
                             />
 
+                            <field
+                                name="tip_amount"
+                                readonly="state != 'draft'"
+                            />
+
+                            <field
+                                name="late_fee"
+                                readonly="state != 'draft'"
+                            />
+
+                            <field
+                                name="total_amount"
+                                readonly="1"
+                            />
+
                             <field name="method"
-                                readonly="split_payment or state != 'draft'"/>
+                                readonly="payment_type == 'split' or state != 'draft'"/>
+
+                            <field name="reference"
+                                readonly="state != 'draft'"/>
+
                         </group>
 
                     </group>
@@ -139,7 +167,7 @@
                                     <field
                                         name="split_difference"
                                         readonly="1"
-                                        invisible="split_status in ('not_used', 'matched')"
+                                        invisible="split_status in ('empty', 'balanced')"
                                     />
                                 </group>
 
@@ -147,11 +175,12 @@
 
                             <!-- Split Payment Lines -->
                             <field name="split_line_ids"
-                                readonly="standard_payment or state != 'draft'">
+                                readonly="payment_type != 'split' or state != 'draft'">
 
                                 <tree editable="bottom">
                                     <field name="method"/>
                                     <field name="amount" sum="Total Amount"/>
+                                    <field name="reference"/>
                                 </tree>
 
                             </field>
