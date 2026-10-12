@@ -33,5 +33,24 @@
             <field name="padding">5</field>
             <field name="company_id" eval="False"/>
         </record>
+
+        <!-- Restaurant Order Sequence --> 
+        <record id="seq_restaurant_order" model="ir.sequence"> 
+            <field name="name">Restaurant Order</field> 
+            <field name="code">restaurant.order</field> 
+            <field name="prefix">ORD/</field>
+            <field name="padding">5</field> 
+            <field name="company_id" eval="False"/> 
+        </record>
+        
+        <!--table sequence-->
+        <record id="seq_restaurant_table" model="ir.sequence">
+            <field name="name">Restaurant Table</field>
+            <field name="code">restaurant.table</field>
+            <field name="prefix">T-</field>
+            <field name="padding">2</field>
+            <field name="number_next">1</field>
+            <field name="company_id" eval="False"/>
+        </record>
     </data>
 </odoo>

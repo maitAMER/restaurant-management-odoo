@@ -17,7 +17,6 @@ class RestaurantOrder(models.Model):
     loyalty_point_awarded = fields.Boolean(
         string='Loyalty Point Awarded', readonly=True, copy=False, default=False,
     )
-    
     date_order = fields.Datetime(string='Order Date', required=True, default=fields.Datetime.now)
     
     order_type = fields.Selection([
@@ -42,6 +41,21 @@ class RestaurantOrder(models.Model):
     notes= fields.Text(string='Notes')
 
     total_amount = fields.Float(string='Total Amount', compute='_compute_total_amount', store=True)
+
+    order_items = fields.Text(
+    string='Order Items',
+    compute='_compute_order_items')
+
+    @api.depends('order_line_ids.product_id', 'order_line_ids.quantity')
+    def _compute_order_items(self):
+        for order in self:
+            items = []
+
+            for line in order.order_line_ids:
+                items.append(
+                    f"{line.quantity} x {line.product_id.name}" )
+
+            order.order_items = '\n'.join(items)
 
     @api.depends('order_line_ids.subtotal')
     def _compute_total_amount(self):

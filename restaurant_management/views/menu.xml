@@ -56,18 +56,24 @@
               action="action_table"
               sequence="50"/>
 
-    <menuitem id="menu_reservations"
+    <!-- <menuitem id="menu_reservations"
               name="Reservations"
               parent="menu_restaurant_management_root"
               action="action_reservation"
-              sequence="60"/>
+              sequence="60"/> -->
 
     <menuitem id="menu_restaurant_orders"
-              name="Orders"
+               name="Orders"
+               parent="menu_restaurant_management_root"
+               action="action_restaurant_orders"
+               sequence="70"/>
+
+    <menuitem id="menu_restaurant_kitchen"
+              name="Kitchen"
               parent="menu_restaurant_management_root"
-              action="action_restaurant_orders"
-              sequence="70"/>
-                  <!-- Payments Menu -->
+              action="action_restaurant_kitchen"
+              sequence="75"/>
+                   <!-- Payments Menu -->
     <menuitem
                 id="menu_restaurant_payment"
                 name="Payments"

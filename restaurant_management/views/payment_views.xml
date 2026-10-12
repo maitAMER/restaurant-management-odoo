@@ -1,157 +1,180 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-
     <!-- Payments List -->
     <record id="view_restaurant_payment_list" model="ir.ui.view">
         <field name="name">restaurant.payment.list</field>
         <field name="model">restaurant.payment</field>
         <field name="arch" type="xml">
             <tree string="Payments"
-                decoration-warning="state == 'draft'"
-                decoration-success="state == 'posted'"
-                decoration-danger="state == 'cancelled'">
+                  decoration-warning="state in ('draft', 'pending')"
+                  decoration-success="state == 'paid'"
+                  decoration-danger="state == 'refunded'">
 
                 <field name="name"/>
                 <field name="order_id"/>
                 <field name="customer_id"/>
                 <field name="payment_date"/>
                 <field name="amount"/>
+                <field name="total_amount"/>
                 <field name="method"/>
 
                 <field name="state"
-                    widget="badge"
-                    decoration-warning="state == 'draft'"
-                    decoration-success="state == 'posted'"
-                    decoration-danger="state == 'cancelled'"/>
+                       widget="badge"
+                       decoration-warning="state in ('draft', 'pending')"
+                       decoration-success="state == 'paid'"
+                       decoration-danger="state == 'refunded'"/>
 
             </tree>
         </field>
     </record>
+
 
     <!-- Payment Form -->
     <record id="view_restaurant_payment_form" model="ir.ui.view">
         <field name="name">restaurant.payment.form</field>
         <field name="model">restaurant.payment</field>
         <field name="arch" type="xml">
+
             <form string="Payment">
 
                 <!-- Header -->
                 <header>
 
-                    <button
-                        name="action_post"
-                        type="object"
-                        string="Confirm Payment"
-                        class="oe_highlight"
-                        invisible="state != 'draft'"
-                    />
+                    <button name="action_submit"
+                            type="object"
+                            string="Submit Payment"
+                            class="oe_highlight"
+                            invisible="state != 'draft'"/>
 
-                    <button
-                        name="action_cancel"
-                        type="object"
-                        string="Cancel Payment"
-                        invisible="state != 'posted'"
-                    />
+                    <button name="action_post"
+                            type="object"
+                            string="Mark as Paid"
+                            class="oe_highlight"
+                            invisible="state != 'pending'"/>
 
-                    <button
-                        name="action_draft"
-                        type="object"
-                        string="Reset to Draft"
-                        invisible="state != 'cancelled'"
-                    />
+                    <button name="action_refund"
+                            type="object"
+                            string="Refund"
+                            invisible="state != 'paid'"/>
 
-                    <field
-                        name="state"
-                        widget="statusbar"
-                    />
+                    <button name="action_draft"
+                            type="object"
+                            string="Reset to Draft"
+                            invisible="state not in ['pending', 'refunded']"/>
+
+                    <field name="state" widget="statusbar"/>
 
                 </header>
 
+
                 <!-- Main Sheet -->
                 <sheet>
-                <group string="Payment Type">
-                    <field name="standard_payment"/>
-                    <field name="split_payment"/>
-                </group>
+
+                    <widget name="web_ribbon" title="Paid" bg_color="text-bg-success"
+                            invisible="state != 'paid'"/>
+                    <widget name="web_ribbon" title="Refunded" bg_color="text-bg-danger"
+                            invisible="state != 'refunded'"/>
+
+                    <!-- Payment Type -->
+                    <group string="Payment Type" col="1">
+
+                        <field name="payment_type"
+                               widget="radio"
+                               readonly="state != 'draft'"/>
+
+                    </group>
+
 
                     <!-- Main Payment Information -->
                     <group>
 
                         <group>
-                            <field
-                                name="name"
-                                readonly="1"
-                            />
 
-                            <field
-                                name="order_id"
-                                domain="[('state', '!=', 'cancelled'), ('payment_ids', '=', False)]"
-                                readonly="state != 'draft'"
-                            />
+                            <field name="name" readonly="1"/>
 
-                            <field name="customer_id"/>
+                            <field name="order_id"
+                                   domain="[('state', '!=', 'cancelled'), ('payment_ids', '=', False)]"
+                                   readonly="state != 'draft'"/>
+
+                            <field name="customer_id" readonly="1"/>
+
                         </group>
 
-                        <group>
-                            <field
-                                name="payment_date"
-                                readonly="state != 'draft'"
-                            />
 
-                            <field
-                                name="amount"
-                                readonly="1"
-                            />
+                        <group>
+
+                            <field name="payment_date"
+                                   readonly="payment_type == 'split' or state != 'draft'"/>
+
+                            <field name="amount" readonly="1"/>
+
+                            <field name="tip_amount"
+                                   readonly="state != 'draft'"/>
+
+                            <field name="late_fee"
+                                   readonly="state != 'draft'"/>
+
+                            <field name="total_amount" readonly="1"/>
 
                             <field name="method"
-                                readonly="split_payment or state != 'draft'"/>
+                                   readonly="payment_type == 'split' or state != 'draft'"/>
+
+                            <field name="refunded_by"
+                                   readonly="1"
+                                   invisible="state != 'refunded'"/>
+
+                            <field name="refunded_at"
+                                   readonly="1"
+                                   invisible="state != 'refunded'"/>
+
                         </group>
 
                     </group>
 
-                    <!-- Notebook Tabs -->
+
+                    <!-- Split Payment Section -->
                     <notebook>
 
-                        <!-- Split Payment Tab -->
-                        <page
-                            string="Split Payment"
-                            name="split_payment"
-                        >
+                        <page string="Split Payment"
+                              name="split_payment"
+                              invisible="payment_type != 'split'">
 
-                            <!-- Split Payment Summary -->
+                            <!-- Split Summary -->
                             <group>
 
                                 <group>
-                                    <field
-                                        name="split_status"
-                                        widget="badge"
-                                        readonly="1"
-                                    />
 
-                                    <field
-                                        name="split_total"
-                                        readonly="1"
-                                    />
+                                    <field name="split_status"
+                                           widget="badge"
+                                           readonly="1"/>
+
+                                    <field name="split_total"
+                                           readonly="1"/>
+
                                 </group>
 
                                 <group>
-                                    <field
-                                        name="split_difference"
-                                        readonly="1"
-                                        invisible="split_status in ('not_used', 'matched')"
-                                    />
+
+                                    <field name="split_difference"
+                                           readonly="1"
+                                           invisible="split_status in ('empty', 'balanced')"/>
+
                                 </group>
 
                             </group>
 
+
                             <!-- Split Payment Lines -->
                             <field name="split_line_ids"
-                                readonly="standard_payment or state != 'draft'">
+                                   readonly="payment_type != 'split' or state != 'draft'">
 
                                 <tree editable="bottom">
+
                                     <field name="method"/>
+
                                     <field name="amount" sum="Total Amount"/>
+
                                 </tree>
 
                             </field>
@@ -163,17 +186,21 @@
                 </sheet>
 
             </form>
+
         </field>
     </record>
 
+
     <!-- Payments Action -->
-    <record
-        id="action_restaurant_payment"
-        model="ir.actions.act_window"
-    >
+    <record id="action_restaurant_payment"
+            model="ir.actions.act_window">
+
         <field name="name">Payments</field>
+
         <field name="res_model">restaurant.payment</field>
+
         <field name="view_mode">tree,form</field>
+
     </record>
 
 </odoo>

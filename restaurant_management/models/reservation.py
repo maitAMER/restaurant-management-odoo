@@ -6,7 +6,7 @@ from datetime import timedelta
 class RestaurantReservation(models.Model):
     _name = 'restaurant.reservation'
     _description = 'Restaurant Reservation'
-    _order = 'name asc'
+    _order = 'reservation_date desc'
 
     name = fields.Char(string='Reservation', copy=False, default='New', readonly=True)
     customer_id = fields.Many2one('restaurant.customer', string='Customer')
@@ -23,16 +23,13 @@ class RestaurantReservation(models.Model):
         ('seated', 'Seated'),
         ('no_show', 'No-show'),
         ('cancelled', 'Cancelled'),
-    ], string='Status', default='draft', required=True)
+    ], string='Status', default='confirmed', required=True)
 
     @api.depends('reservation_date', 'duration')
     def _compute_end(self):
         for rec in self:
             if rec.reservation_date:
-                rec.reservation_end = (
-                    rec.reservation_date
-                    + timedelta(hours=rec.duration or 1)
-                )
+                rec.reservation_end = rec.reservation_date + timedelta(hours=rec.duration or 1)
             else:
                 rec.reservation_end = False
 
@@ -45,34 +42,36 @@ class RestaurantReservation(models.Model):
                 f"({rec.guests})"
             )
 
-    @api.constrains(
-        'table_id',
-        'reservation_date',
-        'duration',
-        'state'
-    )
-    def _check_double_booking(self):
+    @api.constrains('table_id', 'reservation_date', 'duration', 'state', 'guests')
+    def _check_table_availability(self):
         for rec in self:
             if not rec.table_id or not rec.reservation_date:
                 continue
 
             if rec.duration <= 0:
+                raise ValidationError("Reservation duration must be greater than zero.")
+
+            if rec.state in ('cancelled', 'no_show'):
+                continue
+
+            if rec.guests > rec.table_id.capacity:
                 raise ValidationError(
-                    "Reservation duration must be greater than zero."
+                    f"Table {rec.table_id.name} seats {rec.table_id.capacity} "
+                    f"guests, but this reservation is for {rec.guests}."
                 )
 
-            overlapping_reservations = self.search([
+            overlapping = self.search([
                 ('id', '!=', rec.id),
                 ('table_id', '=', rec.table_id.id),
-                ('state', '!=', 'cancelled'),
+                ('state', 'not in', ('cancelled', 'no_show')),
                 ('reservation_date', '<', rec.reservation_end),
                 ('reservation_end', '>', rec.reservation_date),
             ])
-
-            if overlapping_reservations:
+            if overlapping:
                 raise ValidationError(
-                    "This table is already reserved during this time. "
-                    "Please choose another time or table."
+                    f"Table {rec.table_id.name} is already reserved by "
+                    f"{overlapping[0].customer_id.name or overlapping[0].name} "
+                    f"during this time. Please choose another time or table."
                 )
 
     @api.model_create_multi
@@ -80,7 +79,8 @@ class RestaurantReservation(models.Model):
         for vals in vals_list:
             if not vals.get('name') or vals.get('name') == 'New':
                 vals['name'] = (
-                    self.env['ir.sequence'].next_by_code('restaurant.reservation') or 'New')
+                    self.env['ir.sequence'].next_by_code('restaurant.reservation') or 'New'
+                )
         return super().create(vals_list)
 
     def action_confirm(self):
@@ -94,7 +94,6 @@ class RestaurantReservation(models.Model):
 
     def action_cancel(self):
         self.write({'state': 'cancelled'})
-
 
     @api.model
     def _cron_send_reservation_reminders(self):
@@ -111,17 +110,14 @@ class RestaurantReservation(models.Model):
             'restaurant_management.email_template_reservation_reminder',
             raise_if_not_found=False
         )
-
         if not template:
             return
 
         for reservation in reservations:
             if not reservation.customer_id.email:
                 continue
-
             template.send_mail(reservation.id, force_send=True)
             reservation.reminder_sent = True
-
 
     @api.model
     def _cron_flag_no_show_reservations(self):
@@ -131,7 +127,4 @@ class RestaurantReservation(models.Model):
             ('state', '=', 'confirmed'),
             ('reservation_date', '<', cutoff),
         ])
-
-        reservations.write({
-            'state': 'no_show',
-        })
+        reservations.write({'state': 'no_show'})
