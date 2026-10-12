@@ -36,15 +36,19 @@
               parent="menu_restaurant_management_root"
               action="action_restaurant_customers"
               sequence="20"/>
-   <menuitem id="menu_restaurant_equipment" name="Equipment"
+    <menuitem id="menu_restaurant_equipment" name="Equipment Ticket"
               parent="menu_restaurant_management_root"
-              action="action_restaurant_equipment" 
               sequence="30"/>
 
-    <menuitem id="menu_restaurant_equipment_maintenance" name="Maintenance"
-              parent="menu_restaurant_management_root"
+    <menuitem id="menu_restaurant_equipment_items" name="Equipment"
+              parent="menu_restaurant_equipment"
+              action="action_restaurant_equipment"
+              sequence="10"/>
+
+    <menuitem id="menu_restaurant_equipment_maintenance" name="Maintenance Request"
+              parent="menu_restaurant_equipment"
               action="action_restaurant_equipment_maintenance" 
-              sequence="40"/>
+              sequence="20"/>
 
     <menuitem id="menu_tables"
               name="Tables"

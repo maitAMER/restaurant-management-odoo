@@ -8,14 +8,16 @@ class RestaurantMenuCategory(models.Model):
 
     name = fields.Char(string='Category Name', required=True)
     sequence = fields.Integer(string='Sequence', default=10)
+    description = fields.Text(string='Description')
+    item_ids = fields.One2many(
+        'restaurant.menu.item', 'category_id', string='Menu Items',
+    )
 
 class RestaurantMenuItem(models.Model):
     _name = 'restaurant.menu.item'
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _description = 'Restaurant Menu Item'
-    _order = 'menu_section, name, id'
-
-    MINIMUM_INGREDIENTS = 4
+    _order = 'daily_special desc, menu_section, name, id'
 
     name = fields.Char(string='Menu Item', required=True, tracking=True)
     image_1920 = fields.Image(string='Pizza Image', max_width=1920, max_height=1920)
@@ -23,6 +25,9 @@ class RestaurantMenuItem(models.Model):
     category_id = fields.Many2one(
         'restaurant.menu.category', string='Pizza Category',
         ondelete='restrict', tracking=True,
+    )
+    order_line_ids = fields.One2many(
+        'restaurant.order.line', 'product_id', string='Order Lines',
     )
     menu_section = fields.Selection(
         [
@@ -69,29 +74,27 @@ class RestaurantMenuItem(models.Model):
     price = fields.Float(string='Price', required=True, digits='Product Price', tracking=True)
     cost = fields.Float(string='Cost', required=True, digits='Product Price', tracking=True)
     gross_profit = fields.Float(string='Profit', compute='_compute_profit', digits='Product Price')
-    margin_percent = fields.Float(string='Margin %', compute='_compute_profit', digits=(16, 2))
+    margin = fields.Float(
+        string='Margin', compute='_compute_profit', digits=(16, 2), store=True,
+    )
     prep_time = fields.Integer(
         string='Preparation Time',
         help='Preparation duration in minutes.',
+    )
+    prep_time_minutes = fields.Integer(
+        string='Preparation Time (Minutes)', related='prep_time', readonly=False,
+        store=True,
     )
     prep_time_display = fields.Char(
         string='Preparation Time',
         compute='_compute_prep_time_display',
     )
     availability = fields.Boolean(string='Available', default=True, help="Toggle if the item is currently available or out of stock from the kitchen", tracking=True)
-    ingredient_line_ids = fields.One2many(
-        'restaurant.menu.ingredient', 'item_id', string='Ingredients',
+    is_available = fields.Boolean(
+        string='Available', related='availability', readonly=False, store=True,
     )
-    ingredient_count = fields.Integer(
-        string='Ingredient Count', compute='_compute_ingredient_status',
-    )
-    ingredient_warning = fields.Char(
-        string='Ingredient Warning', compute='_compute_ingredient_status',
-    )
-    ingredients = fields.Text(string='Main Ingredients', help="e.g., Tomato sauce, mozzarella, flour")
-    ingredient_search_text = fields.Char(
-        string='Ingredient Search', compute='_compute_ingredient_search_text', store=True,
-    )
+    daily_special = fields.Boolean(string='Daily Special', default=False, tracking=True)
+    description = fields.Text(string='Description')
     allergens = fields.Text(string='Allergen Warnings', help="e.g., Contains dairy/cheese, gluten")
 
     def init(self):
@@ -111,13 +114,7 @@ class RestaurantMenuItem(models.Model):
     def _compute_profit(self):
         for item in self:
             item.gross_profit = item.price - item.cost
-            item.margin_percent = (item.gross_profit / item.price) if item.price else 0.0
-
-    @api.depends('ingredients', 'ingredient_line_ids.name')
-    def _compute_ingredient_search_text(self):
-        for item in self:
-            line_names = item.ingredient_line_ids.mapped('name')
-            item.ingredient_search_text = ', '.join(filter(None, [item.ingredients, *line_names]))
+            item.margin = (item.gross_profit / item.price) if item.price else 0.0
 
     @api.constrains('price', 'cost', 'prep_time')
     def _check_nonnegative_values(self):
@@ -126,62 +123,10 @@ class RestaurantMenuItem(models.Model):
                 raise ValidationError('Enter a price greater than zero.')
             if item.cost <= 0:
                 raise ValidationError('Enter a cost greater than zero.')
-            if item.prep_time <= 0:
+            if item.prep_time < 0:
                 raise ValidationError('Preparation time cannot be negative.')
-
-    @api.depends('ingredient_line_ids')
-    def _compute_ingredient_status(self):
-        for item in self:
-            item.ingredient_count = len(item.ingredient_line_ids)
-            item.ingredient_warning = (
-                f'Add at least {self.MINIMUM_INGREDIENTS} ingredients. '
-                f'This pizza currently has {item.ingredient_count}.'
-                if item.ingredient_count < self.MINIMUM_INGREDIENTS
-                else False
-            )
 
     @api.onchange('menu_section')
     def _onchange_menu_section(self):
         if self.menu_section != 'pizza':
             self.pizza_type = False
-
-
-class RestaurantMenuIngredient(models.Model):
-    _name = 'restaurant.menu.ingredient'
-    _description = 'Pizza Ingredient'
-    _order = 'sequence, id'
-
-    sequence = fields.Integer(default=10)
-    item_id = fields.Many2one(
-        'restaurant.menu.item', string='Pizza', required=True, ondelete='cascade',
-    )
-    name = fields.Char(string='Ingredient', required=True)
-    quantity = fields.Float(
-        string='Quantity', required=True, digits='Product Unit of Measure',
-    )
-    unit = fields.Selection(
-        [
-            ('g', 'g'), ('kg', 'kg'), ('ml', 'ml'), ('l', 'L'),
-            ('tsp', 'tsp'), ('tbsp', 'tbsp'), ('piece', 'piece'),
-        ],
-        string='Unit', required=True,
-    )
-
-    @api.constrains('quantity')
-    def _check_positive_quantity(self):
-        if any(line.quantity <= 0 for line in self):
-            raise ValidationError('Ingredient quantity must be greater than zero.')
-
-    @api.constrains('name', 'item_id')
-    def _check_duplicate_ingredient(self):
-        for line in self.filtered(lambda record: record.name and record.item_id):
-            normalized_name = line.name.strip().casefold()
-            duplicates = line.item_id.ingredient_line_ids.filtered(
-                lambda other: other != line
-                and other.name
-                and other.name.strip().casefold() == normalized_name
-            )
-            if duplicates:
-                raise ValidationError(
-                    f'{line.name} is already listed as an ingredient for this pizza.'
-                )

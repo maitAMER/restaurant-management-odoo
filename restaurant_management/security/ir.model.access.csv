@@ -4,9 +4,9 @@ access_restaurant_customer_loyalty_transaction,restaurant.customer.loyalty.trans
 access_restaurant_customer_loyalty_wizard,restaurant.customer.loyalty.wizard,model_restaurant_customer_loyalty_wizard,base.group_user,1,1,1,1
 access_restaurant_menu_category,restaurant.menu.category,model_restaurant_menu_category,base.group_user,1,1,1,1
 access_restaurant_menu_item,restaurant.menu.item,model_restaurant_menu_item,base.group_user,1,1,1,1
-access_restaurant_menu_ingredient,restaurant.menu.ingredient,model_restaurant_menu_ingredient,base.group_user,1,1,1,1
 access_restaurant_equipment,restaurant.equipment,model_restaurant_equipment,base.group_user,1,1,1,1
 access_restaurant_equipment_maintenance,restaurant.equipment.maintenance,model_restaurant_equipment_maintenance,base.group_user,1,1,1,1
+access_restaurant_equipment_assign_wizard,restaurant.equipment.assign.wizard,model_restaurant_equipment_assign_wizard,base.group_user,1,1,1,1
 access_restaurant_table,restaurant.table,model_restaurant_table,base.group_user,1,1,1,1
 access_restaurant_reservation,restaurant.reservation,model_restaurant_reservation,base.group_user,1,1,1,1
 access_restaurant_order,restaurant.order,model_restaurant_order,base.group_user,1,1,1,1
