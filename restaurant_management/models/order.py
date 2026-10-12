@@ -257,11 +257,27 @@ class RestaurantOrder(models.Model):
 
     def write(self, vals):
         for order in self:
+
+            # Preparing:
+            # Only allow changing state from preparing -> ready
             if order.state == 'preparing':
-                # Allow only changing state from preparing -> ready
                 if vals.keys() != {'state'} or vals.get('state') != 'ready':
                     raise ValidationError(
-                        'While the order is being prepared, you can only mark it as Ready.'
+                        'While the order is being prepared, '
+                        'you can only mark it as Ready.'
                     )
+
+            # After preparing:
+            # Completely lock the order
+            elif order.state in (
+                'ready',
+                'completed',
+                'cancelled',
+                'no_show',
+            ):
+                raise ValidationError(
+                    'This order cannot be edited because it is already '
+                    'Ready, Completed, Cancelled, or No Show.'
+                )
 
         return super().write(vals)

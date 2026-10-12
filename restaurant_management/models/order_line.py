@@ -80,27 +80,54 @@ class RestaurantOrderLine(models.Model):
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
-            order = self.env['restaurant.order'].browse(vals.get('order_id'))
-            if order.state == 'preparing':
+            order = self.env['restaurant.order'].browse(
+                vals.get('order_id')
+            )
+
+            if order.state in (
+                'preparing',
+                'ready',
+                'completed',
+                'cancelled',
+                'no_show',
+            ):
                 raise ValidationError(
-                    'You cannot add items while the order is being prepared.'
+                    'You cannot add items to an order that is '
+                    'being prepared or already finalized.'
                 )
+
         return super().create(vals_list)
 
 
     def write(self, vals):
         for line in self:
-            if line.order_id.state == 'preparing':
+            if line.order_id.state in (
+                'preparing',
+                'ready',
+                'completed',
+                'cancelled',
+                'no_show',
+            ):
                 raise ValidationError(
-                    'You cannot edit items while the order is being prepared.'
+                    'You cannot edit items when the order is '
+                    'being prepared or already finalized.'
                 )
+
         return super().write(vals)
 
 
     def unlink(self):
         for line in self:
-            if line.order_id.state == 'preparing':
+            if line.order_id.state in (
+                'preparing',
+                'ready',
+                'completed',
+                'cancelled',
+                'no_show',
+            ):
                 raise ValidationError(
-                    'You cannot remove items while the order is being prepared.'
+                    'You cannot remove items when the order is '
+                    'being prepared or already finalized.'
                 )
+
         return super().unlink()
