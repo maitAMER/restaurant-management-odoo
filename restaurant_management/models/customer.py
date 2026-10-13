@@ -64,7 +64,7 @@ class RestaurantCustomer(models.Model):
     def _compute_total_spent(self):
         for customer in self:
             customer.total_spent = sum(
-                customer.order_ids.filtered(lambda order: order.state == 'delivered')
+                customer.order_ids.filtered(lambda order: order.state == 'completed')
                 .mapped('total_amount')
             )
 

@@ -27,7 +27,7 @@ class RestaurantMenuItem(models.Model):
         ondelete='restrict', tracking=True,
     )
     order_line_ids = fields.One2many(
-        'restaurant.order.line', 'product_id', string='Order Lines',
+        'restaurant.order.line', 'menu_item_id', string='Order Lines',
     )
     menu_section = fields.Selection(
         [

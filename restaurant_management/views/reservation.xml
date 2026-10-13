@@ -1,114 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Action view -->
-    <record id="action_reservation" model="ir.actions.act_window">
-        <field name="name">Reservations</field>
-        <field name="res_model">restaurant.reservation</field>
-        <field name="view_mode">tree,calendar,form</field>
-    </record>
-
-    <!-- Tree view -->
-    <record id="view_reservation_tree" model="ir.ui.view">
-        <field name="name">restaurant.reservation.tree</field>
-        <field name="model">restaurant.reservation</field>
-        <field name="arch" type="xml">
-            <tree decoration-muted="state == 'cancelled'">
-                <field name="name"/>
-                <field name="customer_id"/>
-                <field name="table_id"/>
-                <field name="reservation_date"/>
-                <field name="guests"/>
-                <field name="state"
-                       widget="badge"
-                       decoration-success="state == 'confirmed'"
-                       decoration-info="state == 'seated'"
-                       decoration-danger="state == 'no_show'"
-                       decoration-muted="state in ('draft', 'cancelled')"/>
-            </tree>
-        </field>
-    </record>
-
-    <!-- Calendar view -->
-    <record id="view_reservation_calendar" model="ir.ui.view">
-        <field name="name">restaurant.reservation.calendar</field>
-        <field name="model">restaurant.reservation</field>
-        <field name="arch" type="xml">
-            <calendar string="Reservations"
-                      date_start="reservation_date"
-                      date_stop="reservation_end"
-                      color="table_id"
-                      mode="week"
-                      event_open_popup="true"
-                      quick_create="false">
-                <field name="customer_id"/>
-                <field name="guests"/>
-                <field name="state"/>
-            </calendar>
-        </field>
-    </record>
-
-    <!-- Form view -->
-    <record id="view_reservation_form" model="ir.ui.view">
-        <field name="name">restaurant.reservation.form</field>
-        <field name="model">restaurant.reservation</field>
-        <field name="arch" type="xml">
-            <form string="Reservation">
-
-                <header>
-                    <button name="action_confirm"
-                            string="Confirm"
-                            type="object"
-                            class="btn-primary"
-                            invisible="state != 'draft'"/>
-
-                    <button name="action_seat"
-                            string="Seat"
-                            type="object"
-                            invisible="state != 'confirmed'"/>
-
-                    <button name="action_no_show"
-                            string="No-show"
-                            type="object"
-                            invisible="state != 'confirmed'"/>
-
-                    <button name="action_cancel"
-                            string="Cancel"
-                            type="object"
-                            invisible="state in ('cancelled', 'seated')"/>
-
-                    <field name="state"
-                           widget="statusbar"
-                           statusbar_visible="draft,confirmed,seated"/>
-                </header>
-
-                <sheet>
-                    <div class="oe_title">
-                        <label for="name"/>
-                        <h1>
-                            <field name="name" placeholder="e.g. RES/00001"/>
-                        </h1>
-                    </div>
-
-                    <group>
-                        <group string="Customer &amp; Table">
-                            <field name="customer_id"/>
-                            <field name="table_id"/>
-                            <field name="guests"/>
-                        </group>
-
-                        <group string="Reservation Details">
-                            <field name="reservation_date"/>
-                            <field name="duration"/>
-                            <field name="reservation_end"/>
-                        </group>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-
     <!-- Reservation Reminder Email Template -->
     <record id="email_template_reservation_reminder" model="mail.template">
 
@@ -171,14 +63,11 @@
 
         <field name="name">Restaurant: Reservation Reminders</field>
 
-        <field name="model_id"
-               ref="model_restaurant_reservation"/>
+        <field name="model_id" ref="model_restaurant_reservation"/>
 
         <field name="state">code</field>
 
-        <field name="code">
-            model._cron_send_reservation_reminders()
-        </field>
+        <field name="code">model._cron_send_reservation_reminders()</field>
 
         <field name="interval_number">1</field>
         <field name="interval_type">hours</field>
@@ -193,14 +82,11 @@
 
         <field name="name">Restaurant: Flag No-show Reservations</field>
 
-        <field name="model_id"
-               ref="model_restaurant_reservation"/>
+        <field name="model_id" ref="model_restaurant_reservation"/>
 
         <field name="state">code</field>
 
-        <field name="code">
-            model._cron_flag_no_show_reservations()
-        </field>
+        <field name="code">model._cron_flag_no_show_reservations()</field>
 
         <field name="interval_number">5</field>
         <field name="interval_type">minutes</field>

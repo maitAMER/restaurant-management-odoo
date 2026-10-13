@@ -12,7 +12,8 @@
     'category': 'Services/Restaurant',
     'version': '0.1',
 
-    'depends': ['base', 'mail', 'product'],
+    'depends': ['base', 'mail', 'product', 'crm', 'website'],
+    
 
     'data': [
         'security/ir.model.access.csv',
@@ -25,7 +26,12 @@
         'views/reservation.xml',
         'views/tables.xml',
         'views/order_views.xml',
+        'views/kitchen_views.xml',
         'views/payment_views.xml',
+        'views/crm_lead.xml',
+        'views/portal_templates.xml',
+        'views/website_templates.xml',
+        'views/website_booking_templates.xml',
         'views/menu.xml',
     ],
     'license': 'LGPL-3',

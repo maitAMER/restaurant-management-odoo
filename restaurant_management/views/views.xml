@@ -58,8 +58,6 @@
     </record>
 
 
-<<<<<<< HEAD
-=======
     <!-- Tables -->
     <record id="view_pizza_table_tree" model="ir.ui.view">
         <field name="name">restaurant.management.table.tree</field>
@@ -79,7 +77,6 @@
     </record>
 
 
->>>>>>> origin/engy
     <!-- Chefs -->
     <record id="view_pizza_chef_tree" model="ir.ui.view">
         <field name="name">restaurant.chef.tree</field>
