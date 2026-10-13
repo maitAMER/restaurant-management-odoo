@@ -254,6 +254,110 @@
 
     </record>
 
+        <!-- ========================= -->
+    <!-- ORDERS SEARCH VIEW -->
+    <!-- ========================= -->
+
+    <record id="view_order_search" model="ir.ui.view">
+
+        <field name="name">restaurant.order.search</field>
+
+        <field name="model">restaurant.order</field>
+
+        <field name="arch" type="xml">
+
+            <search string="Search Orders">
+
+                <!-- Search fields -->
+
+                <field name="name"/>
+
+                <field name="customer_id"/>
+
+                <field name="order_type"/>
+
+                <field name="state"/>
+
+                <field name="table_id"/>
+
+                <field name="driver_id"/>
+
+
+                <!-- ========================= -->
+                <!-- FILTERS -->
+                <!-- ========================= -->
+
+                <separator/>
+
+                <filter
+                    name="filter_today"
+                    string="Today"
+                    domain="[
+                        ('reservation_time', '&gt;=', context_today()),
+                        ('reservation_time', '&lt;', context_today() + relativedelta(days=1))
+                    ]"
+                />
+
+                <filter
+                    name="filter_late"
+                    string="Late"
+                    domain="[
+                        ('end_time', '&lt;', context_today())
+                    ]"
+                />
+
+                <filter
+                    name="filter_overdue"
+                    string="Overdue"
+                    domain="[
+                        ('days_overdue', '&gt;', 0)
+                    ]"
+                />
+
+                <filter
+                    name="filter_my_deliveries"
+                    string="My Deliveries"
+                    domain="[
+                        ('order_type', '=', 'delivery'),
+                        ('driver_id', '=', uid)
+                    ]"
+                />
+
+
+                <!-- ========================= -->
+                <!-- GROUP BY -->
+                <!-- ========================= -->
+
+                <separator/>
+
+                <group>
+
+                    <filter
+                        name="group_state"
+                        string="State"
+                        context="{'group_by': 'state'}"
+                    />
+
+                    <filter
+                        name="group_order_type"
+                        string="Order Type"
+                        context="{'group_by': 'order_type'}"
+                    />
+
+                    <filter
+                        name="group_table"
+                        string="Table"
+                        context="{'group_by': 'table_id'}"
+                    />
+
+                </group>
+
+            </search>
+
+        </field>
+
+    </record>
+
 
     <!-- ========================= -->
     <!-- ORDERS ACTION -->

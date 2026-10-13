@@ -27,6 +27,7 @@
         'views/tables.xml',
         'views/order_views.xml',
         'views/kitchen_views.xml',
+        'views/driver_views.xml',
         'views/payment_views.xml',
         'views/crm_lead.xml',
         'views/website_templates.xml',

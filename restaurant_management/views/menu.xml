@@ -73,6 +73,16 @@
               parent="menu_restaurant_management_root"
               action="action_restaurant_kitchen"
               sequence="75"/>
+
+        <!-- Driver Delivery Queue -->
+    <menuitem
+                id="menu_restaurant_driver_delivery_queue"
+                name="My Deliveries"
+                parent="menu_restaurant_management_root"
+                action="action_restaurant_driver_delivery_queue"
+                sequence="76"
+            />
+
                    <!-- Payments Menu -->
     <menuitem
                 id="menu_restaurant_payment"

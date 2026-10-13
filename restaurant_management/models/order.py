@@ -445,6 +445,7 @@ class RestaurantOrder(models.Model):
                     'This table is already reserved during the selected time. '
                     'Please choose another table or time.'
                 )
+<<<<<<< Updated upstream
             
     
             # A ready order may be completed or cancelled. Final orders are
@@ -465,3 +466,21 @@ class RestaurantOrder(models.Model):
         if {'state', 'restaurant_customer_id'} & vals.keys():
             self._award_loyalty_points()
         return result
+=======
+
+    def _check_driver_action(self):
+        """Only the assigned driver can move delivery orders to ready/completed."""
+        for order in self:
+            if order.order_type != 'delivery':
+                continue
+
+            if not order.driver_id:
+                raise ValidationError(
+                    "This delivery order has no driver assigned."
+                )
+
+            if order.driver_id != self.env.user:
+                raise ValidationError(
+                    "Only the assigned driver can update this delivery order."
+                )
+>>>>>>> Stashed changes

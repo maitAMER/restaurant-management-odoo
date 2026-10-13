@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <!-- ========================================================= -->
+    <!-- Driver Delivery Queue - T055                             -->
+    <!-- ========================================================= -->
+
+    <record id="view_restaurant_order_driver_queue_tree" model="ir.ui.view">
+        <field name="name">restaurant.order.driver.queue.tree</field>
+        <field name="model">restaurant.order</field>
+
+        <field name="arch" type="xml">
+            <tree string="My Deliveries" create="0"
+                  edit="0" delete="0">
+
+                <!-- Order -->
+                <field name="name"/>
+
+                <!-- Customer -->
+                <field name="customer_id"/>
+
+                <!-- Delivery Address -->
+                <field name="delivery_address"/>
+
+                <!-- Reservation / Delivery Time -->
+                <field name="reservation_time"/>
+
+                <!-- Order Type -->
+                <field name="order_type"/>
+
+                <!-- Current State -->
+                <field name="state"/>
+
+                <!-- Total -->
+                <field name="total_amount"/>
+
+                <!-- Mark Ready -->
+                <button
+                    name="action_ready"
+                    type="object"
+                    string="Mark Ready"
+                    class="btn-primary"
+                    invisible="state != 'preparing'"
+                />
+
+                <!-- Complete -->
+                <button
+                    name="action_complete"
+                    type="object"
+                    string="Complete"
+                    class="btn-success"
+                    invisible="state != 'ready'"
+                />
+
+            </tree>
+        </field>
+    </record>
+
+
+    <!-- ========================================================= -->
+    <!-- Driver Delivery Queue Action                             -->
+    <!-- ========================================================= -->
+
+    <record id="action_restaurant_driver_delivery_queue"
+            model="ir.actions.act_window">
+
+        <field name="name">My Deliveries</field>
+
+        <field name="res_model">restaurant.order</field>
+
+        <field name="view_mode">tree,form</field>
+
+        <field name="view_id"
+               ref="view_restaurant_order_driver_queue_tree"/>
+
+        <!--
+            Only show:
+            - Delivery orders
+            - Assigned to the current user
+            - Active delivery orders
+        -->
+        <field name="domain">
+            [
+                ('order_type', '=', 'delivery'),
+                ('driver_id', '=', uid),
+                ('state', 'in', ['confirmed', 'preparing', 'ready'])
+            ]
+        </field>
+        
+
+    </record>
+
+</odoo>
