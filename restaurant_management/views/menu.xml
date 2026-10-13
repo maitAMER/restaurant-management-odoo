@@ -99,6 +99,7 @@
           name="Sales Report"
           parent="menu_restaurant_management_root"
           action="restaurant_management.action_restaurant_sales_report_wizard"
+          groups="restaurant_management.group_shift_manager"
           sequence="90"/>
 
 </odoo>

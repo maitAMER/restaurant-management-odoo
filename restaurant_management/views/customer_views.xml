@@ -65,12 +65,7 @@
 
                             <div class="mt-3" t-if="record.mobile.raw_value"><i class="fa fa-phone me-2" title="Phone"/><field name="mobile"/></div>
                             <div t-if="record.email.raw_value"><i class="fa fa-envelope me-2" title="Email"/><field name="email"/></div>
-                            <div class="mt-2" t-if="record.customer_type.raw_value == 'individual'">
-
-                            <div class="mt-3" t-if="record.mobile.raw_value"><i class="fa fa-phone me-2"/><field name="mobile"/></div>
-                            <div t-if="record.email.raw_value"><i class="fa fa-envelope me-2"/><field name="email"/></div>
                             <div class="mt-2" groups="restaurant_management.group_shift_manager" t-if="record.customer_type.raw_value == 'individual'">
-
                                 <span class="badge text-bg-info"><field name="loyalty_points"/> points</span>
                             </div>
                         </div>

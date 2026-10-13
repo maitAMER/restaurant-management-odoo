@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Restaurant checkboxes at the bottom of the user's Access Rights -->
+    <record id="view_users_form_restaurant_groups" model="ir.ui.view">
+        <field name="name">res.users.form.restaurant.groups</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']" position="inside">
+                <group string="Restaurant">
+                    <field name="is_restaurant_cashier"/>
+                    <field name="is_restaurant_shift_manager"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
