@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- صفحة حجز الطاولات للضيوف -->
+    <template id="table_reservation_template" name="Table Reservation">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <!-- بانر بخلفية صورة مطعم فخمة وواضحة -->
+                <section class="text-white text-center d-flex align-items: center; justify-content-center" style="background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?fm=jpg&amp;q=60&amp;w=3000&amp;auto=format&amp;fit=crop') center/cover no-repeat; min-height: 380px; padding: 60px 20px;">
+                    <div class="container">
+                        <h1 class="display-4 font-weight-bold mb-2">Book Your Table</h1>
+                        <p class="lead text-light mb-0">Experience authentic flavors and reserve your dining spot instantly.</p>
+                    </div>
+                </section>
+
+                <!-- نموذج الحجز -->
+                <div class="container my-5">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-6 col-md-8">
+                            <div class="card shadow-lg border-0 rounded-lg p-4 bg-white">
+                                <div class="card-body">
+                                    <h3 class="card-title text-center mb-4 text-dark font-weight-bold">Reservation Details</h3>
+                                    <form action="/restaurant/reserve/submit" method="POST">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-semibold text-secondary">Your Name</label>
+                                            <input type="text" name="customer_name" class="form-control form-control-lg" placeholder="Enter your full name" required="1"/>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-semibold text-secondary">Email Address</label>
+                                            <input type="email" name="customer_email" class="form-control form-control-lg" placeholder="name@example.com" required="1"/>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-semibold text-secondary">Select Table</label>
+                                            <select name="table_id" class="form-control form-control-lg" required="1">
+                                                <t t-foreach="tables" t-as="table">
+                                                    <option t-att-value="table.id"><t t-esc="table.name"/> (Capacity: <t t-esc="table.capacity"/> Persons)</option>
+                                                </t>
+                                            </select>
+                                        </div>
+                                        <div class="form-group mb-4">
+                                            <label class="font-weight-semibold text-secondary">Reservation Date &amp; Time</label>
+                                            <input type="datetime-local" name="reservation_time" class="form-control form-control-lg" required="1"/>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger btn-block btn-lg w-100 font-weight-bold shadow-sm">Confirm Reservation</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="reservation_success_template" name="Reservation Success">
+        <t t-call="website.layout">
+            <div id="wrap" class="container py-5 text-center" style="min-height: 60vh; display: flex; align-items: center; justify-content: center;">
+                <div class="card shadow-lg border-0 p-5 rounded-lg w-75 bg-light">
+                    <h2 class="text-success mb-3 font-weight-bold">Table Booked Successfully! 🎉</h2>
+                    <p class="lead text-muted">We look forward to serving you. Check your portal for details.</p>
+                    <a href="/menu" class="btn btn-dark btn-lg mt-3 px-5">Browse Menu</a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- صفحة استفسارات الحفلات والكاترينج -->
+    <template id="catering_inquiry_template" name="Catering Inquiry">
+        <t t-call="website.layout">
+            <div id="wrap" class="oe_structure">
+                <section class="text-white text-center d-flex align-items: center; justify-content-center" style="background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?fm=jpg&amp;q=60&amp;w=3000&amp;auto=format&amp;fit=crop') center/cover no-repeat; min-height: 380px; padding: 60px 20px;">
+                    <div class="container">
+                        <h1 class="display-4 font-weight-bold mb-2">Catering &amp; Large Events</h1>
+                        <p class="lead text-light mb-0">Let us elevate your special occasions with our premium catering services.</p>
+                    </div>
+                </section>
+
+                <!-- نموذج الكاترينج -->
+                <div class="container my-5">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-8 col-md-10">
+                            <div class="card shadow-lg border-0 rounded-lg p-4 bg-white">
+                                <div class="card-body">
+                                    <h3 class="card-title text-center mb-4 text-dark font-weight-bold">Event Inquiry Form</h3>
+                                    <form action="/restaurant/catering/submit" method="POST">
+                                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                        
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-semibold text-secondary">Full Name</label>
+                                            <input type="text" name="name" class="form-control form-control-lg" placeholder="Enter your name" required="1"/>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-md-6 form-group mb-3">
+                                                <label class="font-weight-semibold text-secondary">Email</label>
+                                                <input type="email" name="email" class="form-control form-control-lg" placeholder="name@example.com" required="1"/>
+                                            </div>
+                                            <div class="col-md-6 form-group mb-3">
+                                                <label class="font-weight-semibold text-secondary">Phone Number</label>
+                                                <input type="text" name="phone" class="form-control form-control-lg" placeholder="+20..." required="1"/>
+                                            </div>
+                                        </div>
+                                        <div class="form-group mb-3">
+                                            <label class="font-weight-semibold text-secondary">Estimated Guest Count</label>
+                                            <input type="number" name="guest_count" class="form-control form-control-lg" value="10" required="1"/>
+                                        </div>
+                                        <div class="form-group mb-4">
+                                            <label class="font-weight-semibold text-secondary">Event Details &amp; Requirements</label>
+                                            <textarea name="description" class="form-control" rows="4" placeholder="Tell us about your event date, location, and menu preferences..." style="border-radius: 8px;"></textarea>
+                                        </div>
+                                        <button type="submit" class="btn btn-danger btn-block btn-lg w-100 font-weight-bold shadow-sm">Submit Inquiry</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <template id="catering_success_template" name="Catering Success">
+        <t t-call="website.layout">
+            <div id="wrap" class="container py-5 text-center" style="min-height: 60vh; display: flex; align-items: center; justify-content: center;">
+                <div class="card shadow-lg border-0 p-5 rounded-lg w-75 bg-light">
+                    <h2 class="text-info mb-3 font-weight-bold">Inquiry Received Successfully! 🚀</h2>
+                    <p class="lead text-muted">Our event manager will review your request and get back to you shortly.</p>
+                    <a href="/" class="btn btn-dark btn-lg mt-3 px-5">Back to Home</a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- تعريف القوائم في الناف بار -->
+    <record id="menu_restaurant_reserve" model="website.menu">
+        <field name="name">Book Table</field>
+        <field name="url">/restaurant/reserve</field>
+        <field name="parent_id" ref="website.main_menu"/>
+        <field name="sequence" type="int">20</field>
+    </record>
+
+    <record id="menu_restaurant_catering" model="website.menu">
+        <field name="name">Catering</field>
+        <field name="url">/restaurant/catering</field>
+        <field name="parent_id" ref="website.main_menu"/>
+        <field name="sequence" type="int">25</field>
+    </record>
+</odoo>

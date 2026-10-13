@@ -24,6 +24,8 @@ class RestaurantOrder(models.Model):
         ondelete='restrict'
     )
     date_order = fields.Datetime(string='Order Date', required=True, default=fields.Datetime.now)
+
+    table_id = fields.Many2one('restaurant.table', string='Table')
     
     order_type = fields.Selection([
         ('dine_in', 'Dine In'),

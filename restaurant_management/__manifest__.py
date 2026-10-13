@@ -12,7 +12,7 @@
     'category': 'Services/Restaurant',
     'version': '0.1',
 
-    'depends': ['base', 'mail', 'product', 'crm'],
+    'depends': ['base', 'mail', 'product', 'crm', 'website'],
     
 
     'data': [
@@ -28,6 +28,9 @@
         'views/kitchen_views.xml',
         'views/payment_views.xml',
         'views/crm_lead.xml',
+        'views/portal_templates.xml',
+        'views/website_templates.xml',
+        'views/website_booking_templates.xml',
         'views/menu.xml',
     ],
     'license': 'LGPL-3',

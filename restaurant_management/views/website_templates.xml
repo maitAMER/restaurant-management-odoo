@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 1. الصفحة الرئيسية لمطعم البيتزا -->
+    <template id="restaurant_homepage" inherit_id="website.homepage" name="Restaurant Homepage">
+        <xpath expr="//div[@id='wrap']" position="inside">
+            <!-- Hero Section (واجهة البيتزا) -->
+            <section class="hero-section text-white text-center py-5" style="background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&amp;fit=crop&amp;w=1920&amp;q=80') center/cover no-repeat; min-height: 500px; display: flex; align-items: center; justify-content: center;">
+                <div class="container">
+                    <h1 class="display-3 font-weight-bold mb-3">Authentic Italian Pizza &amp; More</h1>
+                    <p class="lead mb-4">Handcrafted dough, fresh mozzarella, and wood-fired perfection delivered hot to your door.</p>
+                    <a href="/menu" class="btn btn-danger btn-lg px-5 py-3 font-weight-bold shadow">Explore Our Pizza Menu</a>
+                </div>
+            </section>
+
+            <!-- Features Section (مميزات مطعم البيتزا) -->
+            <section class="container py-5">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-4">
+                        <div class="p-4 border rounded shadow-sm h-100 bg-light">
+                            <i class="fa fa-fire fa-3x text-warning mb-3"></i>
+                            <h4 class="font-weight-bold">Wood-Fired Crust</h4>
+                            <p class="text-muted">Baked to crispy perfection in our traditional stone-oven.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="p-4 border rounded shadow-sm h-100 bg-light">
+                            <i class="fa fa-leaf fa-3x text-success mb-3"></i>
+                            <h4 class="font-weight-bold">Fresh Daily Dough</h4>
+                            <p class="text-muted">Our pizza dough is kneaded and proofed fresh every single morning.</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="p-4 border rounded shadow-sm h-100 bg-light">
+                            <i class="fa fa-motorcycle fa-3x text-primary mb-3"></i>
+                            <h4 class="font-weight-bold">Lightning Fast Delivery</h4>
+                            <p class="text-muted">Enjoy your pizza piping hot, just as if you were sitting in our pizzeria.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </xpath>
+    </template>
+
+    <!-- 2. قالب صفحة المنيو العامة -->
+    <template id="menu_catalog_template" name="Restaurant Menu">
+        <t t-call="website.layout">
+            <div id="wrap" class="container py-5">
+                <h1 class="text-center mb-5 font-weight-bold">Our Delicious Pizza Menu</h1>
+                
+                <!-- شبكة الأطباق -->
+                <div class="row">
+                    <t t-foreach="items" t-as="item">
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100 shadow-sm border-0">
+                                <!-- صورة الطبق -->
+                                <t t-if="item.image_1920">
+                                    <img t-att-src="website.image_url(item, 'image_1920')" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Item Image"/>
+                                </t>
+                                <t t-else="">
+                                    <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&amp;fit=crop&amp;w=600&amp;q=80" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Default Image"/>
+                                </t>
+                                
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title font-weight-bold" t-field="item.name"/>
+                                    <p class="card-text text-muted small" t-field="item.ingredients"/>
+                                    <div class="mt-auto">
+                                        <div class="d-flex justify-content-between align-items-center mb-3">
+                                            <span class="font-weight-bold text-success h5 mb-0"><span t-field="item.price"/> EGP</span>
+                                            <span class="badge badge-info p-2"><i class="fa fa-clock-o"></i> <span t-esc="item.prep_time_display"/></span>
+                                        </div>
+                                        <!-- رابط التفاصيل -->
+                                        <a t-att-href="'/menu/%s/%s' % (item.id, slug(item))" class="btn btn-outline-primary btn-block font-weight-bold">View Details</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 3. قالب تفاصيل الصنف الفردي -->
+    <template id="menu_item_detail_template" name="Menu Item Detail">
+        <t t-call="website.layout">
+            <div id="wrap" class="container py-5">
+                <div class="row align-items-center">
+                    <div class="col-md-6 mb-4 mb-md-0">
+                        <t t-if="item.image_1920">
+                            <img t-att-src="website.image_url(item, 'image_1920')" class="img-fluid rounded shadow w-100" style="max-height: 400px; object-fit: cover;" alt="Item Details"/>
+                        </t>
+                        <t t-else="">
+                            <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&amp;fit=crop&amp;w=600&amp;q=80" class="img-fluid rounded shadow w-100" alt="Default Details"/>
+                        </t>
+                    </div>
+                    <div class="col-md-6">
+                        <h1 class="font-weight-bold" t-field="item.name"/>
+                        <p class="text-muted text-uppercase small font-weight-bold" t-field="item.menu_section"/>
+                        <h3 class="text-success mb-4"><span t-field="item.price"/> EGP</h3>
+                        
+                        <hr/>
+                        <p><strong>Ingredients:</strong> <span t-field="item.ingredients"/></p>
+                        <p><strong>Allergens:</strong> <span t-field="item.allergens" class="text-danger"/></p>
+                        <p><strong>Preparation Time:</strong> <span t-esc="item.prep_time_display"/></p>
+                        
+                        <div class="mt-4">
+                            <a href="/menu" class="btn btn-secondary px-4">Back to Menu</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+</odoo>
