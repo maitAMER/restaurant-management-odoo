@@ -15,6 +15,11 @@
     'depends': ['base', 'mail', 'product', 'crm', 'website'],
     
 
+     # needed by the Excel exports (sales report wizard + order receipt)
+    'external_dependencies': {
+        'python': ['xlsxwriter'],
+    },
+
     'data': [
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
@@ -33,6 +38,12 @@
         'views/website_templates.xml',
         'views/website_booking_templates.xml',
         'views/portal_template.xml',
+        # --- new: wizards ---
+        'wizard/sales_report_wizard_views.xml',
+        # --- new: PDF receipt ---
+        'report/report.xml',
+        'report/restaurant_report_templates.xml',
+        # menu stays last
         'views/menu.xml',
     ],
     'license': 'LGPL-3',

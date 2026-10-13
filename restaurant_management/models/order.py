@@ -155,18 +155,14 @@ class RestaurantOrder(models.Model):
             else:
                 order.end_time = False
 
-
     @api.depends(
         'order_type',
         'reservation_time',
         'duration_minutes',
     )
     def _compute_available_table_ids(self):
-
         Table = self.env['restaurant.table']
-
         for order in self:
-
             if order.order_type != 'dine_in':
                 order.available_table_ids = Table.browse()
                 continue
@@ -196,24 +192,21 @@ class RestaurantOrder(models.Model):
 
     @api.onchange('order_type')
     def _onchange_order_type(self):
-    
-            if self.order_type == 'dine_in':
-                self.delivery_address = False
-                self.driver_id = False
-                self.delivery_fee = 0.0
-    
-            elif self.order_type == 'delivery':
-                self.table_id = False
-                self.reservation_time = False
-                self.duration_minutes = 90
-    
-            elif self.order_type == 'takeaway':
-                self.table_id = False
-                self.reservation_time = False
-                self.duration_minutes = 90
-                self.delivery_address = False
-                self.driver_id = False
-                self.delivery_fee = 0.0
+        if self.order_type == 'dine_in':
+            self.delivery_address = False
+            self.driver_id = False
+            self.delivery_fee = 0.0
+        elif self.order_type == 'delivery':
+            self.table_id = False
+            self.reservation_time = False
+            self.duration_minutes = 90
+        elif self.order_type == 'takeaway':
+            self.table_id = False
+            self.reservation_time = False
+            self.duration_minutes = 90
+            self.delivery_address = False
+            self.driver_id = False
+            self.delivery_fee = 0.0
 
     @api.constrains('reservation_time', 'duration_minutes')
     def _check_times(self):
@@ -242,13 +235,11 @@ class RestaurantOrder(models.Model):
     def _compute_order_items(self):
         for order in self:
             items = []
-
             for line in order.line_ids:
                 if line.menu_item_id:
                     items.append(
                         f"{line.quantity} x {line.menu_item_id.name}"
                     )
-
             order.order_items = '\n'.join(items)
 
     def _award_loyalty_points(self):
@@ -280,52 +271,40 @@ class RestaurantOrder(models.Model):
                     self.env['ir.sequence'].next_by_code('restaurant.order')
                     or 'New'
                 )
-
         orders = super().create(vals_list)
-
         orders._clear_table_availability_cache()
-
         return orders
 
     def copy(self, default=None):
         default = dict(default or {})
-
         default.update({
             'state': 'draft',
             'reservation_time': False,
         })
-
         return super().copy(default)
 
     @api.constrains('order_type', 'table_id', 'delivery_address')
     def _check_type_rules(self):
         for order in self:
-
             if order.order_type == 'dine_in' and not order.table_id:
                 raise ValidationError(
                     'A table is required for dine-in orders.'
                 )
-
             if order.order_type == 'delivery' and not order.delivery_address:
                 raise ValidationError(
                     'A delivery address is required for delivery orders.'
                 )
-        
 
     @api.model
     def _cron_close_stale_orders(self):
         cutoff = fields.Datetime.now() - timedelta(minutes=30)
-
         stale_orders = self.search([
             ('state', '=', 'confirmed'),
             ('end_time', '<', cutoff),
         ])
-
         for order in stale_orders:
             order.state = 'no_show'
-
         stale_orders._refresh_table_availability()
-
 
     @api.constrains('line_ids')
     def _check_order_lines(self):
@@ -335,34 +314,34 @@ class RestaurantOrder(models.Model):
                     'You must add at least one item to the order.'
                 )
 
-
     def write(self, vals):
         for order in self:
-
-            # Preparing → Ready only
+            # Preparing: Only allow changing state to ready
             if order.state == 'preparing':
                 if vals.keys() != {'state'} or vals.get('state') != 'ready':
                     raise ValidationError(
                         'While the order is being prepared, '
                         'you can only mark it as Ready.'
                     )
-
-            # Ready → Completed only
+            # Ready: Can be completed or cancelled
             elif order.state == 'ready':
-                if vals.keys() != {'state'} or vals.get('state') != 'completed':
+                if vals.keys() != {'state'} or vals.get('state') not in ('completed', 'cancelled'):
                     raise ValidationError(
-                        'This order is Ready and cannot be edited. '
-                        'You can only mark it as Completed.'
+                        'A ready order can only be completed or cancelled.'
+                    )
+            # Completed / Cancelled / No Show: locked except for loyalty points flag
+            elif order.state in ('completed', 'cancelled', 'no_show'):
+                if vals != {'loyalty_point_awarded': True}:
+                    raise ValidationError(
+                        'This order cannot be edited because it is already '
+                        'Completed, Cancelled, or No Show.'
                     )
 
-            # Completed / Cancelled / No Show → completely locked
-            elif order.state in ('completed', 'cancelled', 'no_show'):
-                raise ValidationError(
-                    'This order cannot be edited because it is already '
-                    'Completed, Cancelled, or No Show.'
-                )
         result = super().write(vals)
         self._clear_table_availability_cache()
+
+        if {'state', 'restaurant_customer_id'} & vals.keys():
+            self._award_loyalty_points()
 
         return result
 
@@ -370,11 +349,8 @@ class RestaurantOrder(models.Model):
         self._clear_table_availability_cache()
         return super().unlink()
 
-
-    
     def _refresh_table_availability(self):
         tables = self.mapped('table_id')
-
         if tables:
             self.env.add_to_compute(
                 tables._fields['availability'],
@@ -388,7 +364,6 @@ class RestaurantOrder(models.Model):
 
     def _clear_table_availability_cache(self):
         tables = self.mapped('table_id')
-
         if tables:
             tables.is_available_for_period.clear_cache()
 
@@ -396,26 +371,23 @@ class RestaurantOrder(models.Model):
         self.write({'state': 'confirmed'})
         self._refresh_table_availability()
 
-
     def action_prepare(self):
         self.write({'state': 'preparing'})
         self._refresh_table_availability()
 
-
     def action_ready(self):
+        self._check_driver_action()
         self.write({'state': 'ready'})
         self._refresh_table_availability()
 
-
     def action_complete(self):
+        self._check_driver_action()
         self.write({'state': 'completed'})
         self._refresh_table_availability()
-
 
     def action_cancel(self):
         self.write({'state': 'cancelled'})
         self._refresh_table_availability()
-
 
     def action_no_show(self):
         self.write({'state': 'no_show'})
@@ -424,13 +396,10 @@ class RestaurantOrder(models.Model):
     @api.constrains('table_id', 'reservation_time', 'duration_minutes')
     def _check_table_availability(self):
         for order in self:
-
             if not order.table_id:
                 continue
-
             if not order.reservation_time:
                 continue
-
             if not order.end_time:
                 continue
 
@@ -445,28 +414,6 @@ class RestaurantOrder(models.Model):
                     'This table is already reserved during the selected time. '
                     'Please choose another table or time.'
                 )
-<<<<<<< Updated upstream
-            
-    
-            # A ready order may be completed or cancelled. Final orders are
-            # otherwise locked, except for the internal loyalty-awarded flag.
-            elif order.state == 'ready':
-                if vals.keys() != {'state'} or vals.get('state') not in ('completed', 'cancelled'):
-                    raise ValidationError(
-                        'A ready order can only be completed or cancelled.'
-                    )
-            elif order.state in ('completed', 'cancelled', 'no_show'):
-                if vals != {'loyalty_point_awarded': True}:
-                    raise ValidationError(
-                        'This order cannot be edited because it is already '
-                        'Completed, Cancelled, or No Show.'
-                    )
-
-        result = super().write(vals)
-        if {'state', 'restaurant_customer_id'} & vals.keys():
-            self._award_loyalty_points()
-        return result
-=======
 
     def _check_driver_action(self):
         """Only the assigned driver can move delivery orders to ready/completed."""
@@ -483,4 +430,3 @@ class RestaurantOrder(models.Model):
                 raise ValidationError(
                     "Only the assigned driver can update this delivery order."
                 )
->>>>>>> Stashed changes
