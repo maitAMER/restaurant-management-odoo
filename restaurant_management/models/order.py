@@ -1,5 +1,5 @@
-from odoo import exceptions, models, fields, api
-from odoo.exceptions import UserError, ValidationError
+from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from datetime import timedelta
 
 class RestaurantOrder(models.Model):
@@ -33,6 +33,12 @@ class RestaurantOrder(models.Model):
     table_id = fields.Many2one(
         'restaurant.table',
         string='Table'
+    )
+
+    available_table_ids = fields.Many2many(
+        'restaurant.table',
+        compute='_compute_available_table_ids',
+        string='Available Tables'
     )
 
     reservation_time = fields.Datetime(
@@ -149,6 +155,66 @@ class RestaurantOrder(models.Model):
             else:
                 order.end_time = False
 
+
+    @api.depends(
+        'order_type',
+        'reservation_time',
+        'duration_minutes',
+    )
+    def _compute_available_table_ids(self):
+
+        Table = self.env['restaurant.table']
+
+        for order in self:
+
+            if order.order_type != 'dine_in':
+                order.available_table_ids = Table.browse()
+                continue
+
+            if not order.reservation_time or order.duration_minutes <= 0:
+                order.available_table_ids = Table.search([
+                    ('active', '=', True),
+                ])
+                continue
+
+            end_time = fields.Datetime.add(
+                order.reservation_time,
+                minutes=order.duration_minutes,
+            )
+
+            available_tables = Table.search([
+                ('active', '=', True),
+            ]).filtered(
+                lambda table: table.is_available_for_period(
+                    order.reservation_time,
+                    end_time,
+                    exclude_order=order,
+                )
+            )
+
+            order.available_table_ids = available_tables
+
+    @api.onchange('order_type')
+    def _onchange_order_type(self):
+    
+            if self.order_type == 'dine_in':
+                self.delivery_address = False
+                self.driver_id = False
+                self.delivery_fee = 0.0
+    
+            elif self.order_type == 'delivery':
+                self.table_id = False
+                self.reservation_time = False
+                self.duration_minutes = 90
+    
+            elif self.order_type == 'takeaway':
+                self.table_id = False
+                self.reservation_time = False
+                self.duration_minutes = 90
+                self.delivery_address = False
+                self.driver_id = False
+                self.delivery_fee = 0.0
+
     @api.constrains('reservation_time', 'duration_minutes')
     def _check_times(self):
         for order in self:
@@ -215,7 +281,21 @@ class RestaurantOrder(models.Model):
                     or 'New'
                 )
 
-        return super().create(vals_list)
+        orders = super().create(vals_list)
+
+        orders._clear_table_availability_cache()
+
+        return orders
+
+    def copy(self, default=None):
+        default = dict(default or {})
+
+        default.update({
+            'state': 'draft',
+            'reservation_time': False,
+        })
+
+        return super().copy(default)
 
     @api.constrains('order_type', 'table_id', 'delivery_address')
     def _check_type_rules(self):
@@ -231,25 +311,6 @@ class RestaurantOrder(models.Model):
                     'A delivery address is required for delivery orders.'
                 )
         
-    def action_confirm(self):
-        self.write({'state': 'confirmed'})
-
-    def action_prepare(self):
-        self.write({'state': 'preparing'})
-
-    def action_ready(self):
-        self.write({'state': 'ready'})
-
-    def action_complete(self):
-        self.write({'state': 'completed'})
-
-    def action_cancel(self):
-        self.write({'state': 'cancelled'})
-
-    def action_no_show(self):
-        self.write({'state': 'no_show'})
-
-
 
     @api.model
     def _cron_close_stale_orders(self):
@@ -259,12 +320,11 @@ class RestaurantOrder(models.Model):
             ('state', '=', 'confirmed'),
             ('end_time', '<', cutoff),
         ])
-        for order in stale_orders:
 
+        for order in stale_orders:
             order.state = 'no_show'
 
-            if order.table_id:
-                order.table_id.available = True
+        stale_orders._refresh_table_availability()
 
 
     @api.constrains('line_ids')
@@ -275,11 +335,11 @@ class RestaurantOrder(models.Model):
                     'You must add at least one item to the order.'
                 )
 
+
     def write(self, vals):
         for order in self:
 
-            # Preparing:
-            # Only allow changing state from preparing -> ready
+            # Preparing → Ready only
             if order.state == 'preparing':
                 if vals.keys() != {'state'} or vals.get('state') != 'ready':
                     raise ValidationError(
@@ -287,6 +347,106 @@ class RestaurantOrder(models.Model):
                         'you can only mark it as Ready.'
                     )
 
+            # Ready → Completed only
+            elif order.state == 'ready':
+                if vals.keys() != {'state'} or vals.get('state') != 'completed':
+                    raise ValidationError(
+                        'This order is Ready and cannot be edited. '
+                        'You can only mark it as Completed.'
+                    )
+
+            # Completed / Cancelled / No Show → completely locked
+            elif order.state in ('completed', 'cancelled', 'no_show'):
+                raise ValidationError(
+                    'This order cannot be edited because it is already '
+                    'Completed, Cancelled, or No Show.'
+                )
+        result = super().write(vals)
+        self._clear_table_availability_cache()
+
+        return result
+
+    def unlink(self):
+        self._clear_table_availability_cache()
+        return super().unlink()
+
+
+    
+    def _refresh_table_availability(self):
+        tables = self.mapped('table_id')
+
+        if tables:
+            self.env.add_to_compute(
+                tables._fields['availability'],
+                tables
+            )
+            self.env.add_to_compute(
+                tables._fields['is_available'],
+                tables
+            )
+            self.env.flush_all()
+
+    def _clear_table_availability_cache(self):
+        tables = self.mapped('table_id')
+
+        if tables:
+            tables.is_available_for_period.clear_cache()
+
+    def action_confirm(self):
+        self.write({'state': 'confirmed'})
+        self._refresh_table_availability()
+
+
+    def action_prepare(self):
+        self.write({'state': 'preparing'})
+        self._refresh_table_availability()
+
+
+    def action_ready(self):
+        self.write({'state': 'ready'})
+        self._refresh_table_availability()
+
+
+    def action_complete(self):
+        self.write({'state': 'completed'})
+        self._refresh_table_availability()
+
+
+    def action_cancel(self):
+        self.write({'state': 'cancelled'})
+        self._refresh_table_availability()
+
+
+    def action_no_show(self):
+        self.write({'state': 'no_show'})
+        self._refresh_table_availability()
+
+    @api.constrains('table_id', 'reservation_time', 'duration_minutes')
+    def _check_table_availability(self):
+        for order in self:
+
+            if not order.table_id:
+                continue
+
+            if not order.reservation_time:
+                continue
+
+            if not order.end_time:
+                continue
+
+            available = order.table_id.is_available_for_period(
+                order.reservation_time,
+                order.end_time,
+                exclude_order=order,
+            )
+
+            if not available:
+                raise ValidationError(
+                    'This table is already reserved during the selected time. '
+                    'Please choose another table or time.'
+                )
+            
+    
             # A ready order may be completed or cancelled. Final orders are
             # otherwise locked, except for the internal loyalty-awarded flag.
             elif order.state == 'ready':
