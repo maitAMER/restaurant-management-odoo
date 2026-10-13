@@ -18,10 +18,18 @@ class RestaurantCustomer(models.Model):
         [('individual', 'Individual'), ('corporate', 'Corporate')],
         string='Customer Type', required=True, default='individual', tracking=True,
     )
+    phone = fields.Char(string='Phone', tracking=True)
     mobile = fields.Char(string='Mobile', tracking=True)
     mobile_normalized = fields.Char(compute='_compute_normalized_identifiers', store=True, index=True)
-    email = fields.Char(string='Email', tracking=True)
+    email = fields.Char(
+        string='Email', tracking=True,
+        help='Enter a valid email address, for example name@example.com.',
+    )
+    email_normalized = fields.Char(
+        compute='_compute_normalized_identifiers', store=True, index=True,
+    )
     address = fields.Text(string='Address', tracking=True)
+    date_of_birth = fields.Date(string='Date of Birth')
     loyalty_points = fields.Integer(string='Loyalty Points', default=0, tracking=True, readonly=True)
     loyalty_transaction_ids = fields.One2many(
         'restaurant.customer.loyalty.transaction', 'customer_id', string='Loyalty History',
@@ -33,6 +41,32 @@ class RestaurantCustomer(models.Model):
     company_website = fields.Char(string='Company Website')
     contact_person = fields.Char(string='Contact Person', tracking=True)
     contact_person_mobile = fields.Char(string='Contact Person Mobile', tracking=True)
+    favorite_items = fields.Many2many(
+        'restaurant.menu.item', 'restaurant_customer_menu_favorite_rel',
+        'customer_id', 'menu_item_id', string='Favorite Menu Items',
+    )
+    user_id = fields.Many2one('res.users', string='Related User', ondelete='set null')
+    active = fields.Boolean(default=True)
+    internal_notes = fields.Text(string='Internal Notes', groups='base.group_system')
+    order_ids = fields.One2many(
+        'restaurant.order', 'restaurant_customer_id', string='Orders',
+    )
+    total_spent = fields.Monetary(
+        string='Total Spent', compute='_compute_total_spent', store=True,
+        currency_field='currency_id',
+    )
+    currency_id = fields.Many2one(
+        'res.currency', string='Currency',
+        default=lambda self: self.env.company.currency_id,
+    )
+
+    @api.depends('order_ids.total_amount', 'order_ids.state')
+    def _compute_total_spent(self):
+        for customer in self:
+            customer.total_spent = sum(
+                customer.order_ids.filtered(lambda order: order.state == 'completed')
+                .mapped('total_amount')
+            )
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -43,10 +77,20 @@ class RestaurantCustomer(models.Model):
                 )
         return super().create(vals_list)
 
-    @api.depends('mobile', 'company_tax_id')
+    def copy_data(self, default=None):
+        # A duplicate is a new customer, so unique identifiers must be entered
+        # again instead of being copied from the original record.
+        default = dict(default or {})
+        default.setdefault('email', False)
+        default.setdefault('mobile', False)
+        default.setdefault('company_tax_id', False)
+        return super().copy_data(default)
+
+    @api.depends('mobile', 'email', 'company_tax_id')
     def _compute_normalized_identifiers(self):
         for customer in self:
             customer.mobile_normalized = re.sub(r'\D', '', customer.mobile or '') or False
+            customer.email_normalized = (customer.email or '').strip().casefold() or False
             customer.company_tax_id_normalized = re.sub(
                 r'[^A-Za-z0-9]', '', customer.company_tax_id or '',
             ).upper() or False
@@ -63,6 +107,23 @@ class RestaurantCustomer(models.Model):
             ], limit=1)
             if duplicate:
                 raise ValidationError('This mobile number is already used by another individual customer.')
+
+    @api.constrains('email')
+    def _check_email_format_and_uniqueness(self):
+        for customer in self:
+            email = (customer.email or '').strip()
+            if email and not re.fullmatch(r'[^@\s]+@[^@\s]+\.[^@\s]+', email):
+                raise ValidationError(
+                    'Enter a valid email address, for example name@example.com.'
+                )
+            if not customer.email_normalized:
+                continue
+            duplicate = self.search([
+                ('id', '!=', customer.id),
+                ('email_normalized', '=', customer.email_normalized),
+            ], limit=1)
+            if duplicate:
+                raise ValidationError('This email address is already used by another customer.')
 
     @api.constrains('company_tax_id', 'customer_type')
     def _check_corporate_tax_id_is_unique(self):
@@ -97,10 +158,21 @@ class RestaurantCustomerLoyaltyTransaction(models.Model):
     customer_id = fields.Many2one(
         'restaurant.customer', string='Customer', required=True, ondelete='cascade',
     )
+    source_order_id = fields.Many2one(
+        'restaurant.order', string='Earned From Order', ondelete='set null',
+    )
     date = fields.Datetime(string='Date', required=True, default=fields.Datetime.now)
     points_delta = fields.Integer(string='Points Change', required=True)
     balance_after = fields.Integer(string='Balance After', required=True)
     reason = fields.Char(string='Reason', required=True)
+
+    _sql_constraints = [
+        (
+            'source_order_unique',
+            'unique(source_order_id)',
+            'An order can award loyalty points only once.',
+        ),
+    ]
 
     def unlink(self):
         customers = self.mapped('customer_id')
@@ -110,12 +182,15 @@ class RestaurantCustomerLoyaltyTransaction(models.Model):
             remaining = transactions_to_keep.search([
                 ('customer_id', '=', customer.id),
                 ('id', 'not in', self.ids),
-            ])
-            if sum(remaining.mapped('points_delta')) < 0:
-                raise UserError(
-                    'These history lines cannot be deleted because the remaining '
-                    'transactions would leave the customer with a negative point balance.'
-                )
+            ], order='date, id')
+            balance = 0
+            for transaction in remaining:
+                balance += transaction.points_delta
+                if balance < 0:
+                    raise UserError(
+                        'These history lines cannot be deleted because the remaining '
+                        'transactions would create a negative point balance.'
+                    )
 
         result = super().unlink()
         for customer in customers:

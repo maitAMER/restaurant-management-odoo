@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
+        <record id="seq_restaurant_equipment_maintenance" model="ir.sequence">
+            <field name="name">Equipment Maintenance Ticket</field>
+            <field name="code">restaurant.equipment.maintenance</field>
+            <field name="prefix">TKT/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
         <record id="seq_restaurant_customer" model="ir.sequence">
             <field name="name">Restaurant Customer</field>
             <field name="code">restaurant.customer</field>

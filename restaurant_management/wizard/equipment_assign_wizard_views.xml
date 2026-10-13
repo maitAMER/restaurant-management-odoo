@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_restaurant_equipment_assign_wizard_form" model="ir.ui.view">
+        <field name="name">restaurant.equipment.assign.wizard.form</field>
+        <field name="model">restaurant.equipment.assign.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Assign Maintenance Tickets">
+                <group>
+                    <field name="ticket_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                    <field name="technician_id"/>
+                </group>
+                <footer>
+                    <button name="action_assign" type="object" string="Assign" class="oe_highlight"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
