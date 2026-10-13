@@ -31,10 +31,10 @@
                             invisible="not id"/>
                     <button name="action_mark_out_of_service" type="object"
                             string="Mark Out of Service" class="btn-danger"
-                            invisible="status != 'working'"/>
+                            invisible="status != 'working'" groups="restaurant_management.group_shift_manager"/>
                     <button name="action_mark_working" type="object"
                             string="Mark Working" class="oe_highlight"
-                            invisible="status != 'out_of_service'"/>
+                            invisible="status != 'out_of_service'" groups="restaurant_management.group_shift_manager"/>
                     <field name="status" widget="statusbar"
                            statusbar_visible="working,under_maintenance,out_of_service" readonly="1"/>
                 </header>
