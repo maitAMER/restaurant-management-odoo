@@ -40,6 +40,9 @@ class RestaurantMenuItem(models.Model):
         default='pizza',
         tracking=True,
     )
+
+
+    ingredients = fields.Text(string='Ingredients')
     pizza_type = fields.Selection(
             [
                 ('pepperoni', 'Pepperoni'),

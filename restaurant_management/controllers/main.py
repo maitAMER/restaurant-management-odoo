@@ -83,11 +83,9 @@ class RestaurantWebsite(http.Controller):
         if not table.exists():
             return request.redirect('/restaurant/reserve?error=table_not_found')
         
-        # التأكد من الإتاحة
         if hasattr(table, 'is_available_for_period') and not table.is_available_for_period(reservation_time, duration_minutes):
             return request.redirect('/restaurant/reserve?error=table_busy')
 
-        # البحث أو إنشاء العميل
         customer = request.env['restaurant.customer'].sudo().search([('email', '=', customer_email)], limit=1)
         if not customer:
             customer = request.env['restaurant.customer'].sudo().create({
@@ -96,30 +94,61 @@ class RestaurantWebsite(http.Controller):
             })
 
         try:
-            # 1. إنشاء الحجز في جدول الحجوزات
             request.env['restaurant.reservation'].sudo().create({
                 'reservation_date': fields.Datetime.to_string(reservation_datetime),
                 'duration': duration_minutes / 60.0,
                 'table_id': table_id,
-                'customer_id': customer.id,
+                'restaurant_customer_id': customer.id,
             })
 
-            # 2. إنشاء Draft Order مربوط بالطاولة والعميل
-            request.env['restaurant.order'].sudo().create({
-                'customer_id': customer.id,
+            order_vals = {
+                'restaurant_customer_id': customer.id,
                 'table_id': table_id,
                 'order_type': 'dine_in',
                 'state': 'draft',
                 'date_order': fields.Datetime.to_string(reservation_datetime),
                 'notes': f"Table Reservation for {customer_name} (Table: {table.name})"
-            })
+            }
+            if customer.user_id and customer.user_id.partner_id:
+                order_vals['customer_id'] = customer.user_id.partner_id.id
+
+            request.env['restaurant.order'].sudo().create(order_vals)
 
         except ValidationError:
             return request.redirect('/restaurant/reserve?error=table_busy')
 
         return request.render('restaurant_management.reservation_success_template', {})
 
-    # 6. مسار استفسارات الحفلات والكاترينج (تظهر فوراً في الـ CRM Pipeline)
+    # 6. مسار إرسال الأوردر السريع من المنيو أو صفحة تفاصيل الصنف (ينزل Draft Order)
+    @http.route('/restaurant/order/submit', type='http', auth='public', methods=['POST'], website=True, csrf=True)
+    def submit_website_order(self, menu_item_id, quantity=1, **kwargs):
+        partner = request.env.user.partner_id
+        
+        customer = request.env['restaurant.customer'].sudo().search([('email', '=', partner.email)], limit=1)
+        if not customer:
+            customer = request.env['restaurant.customer'].sudo().create({
+                'name': partner.name if partner.name and partner.name != 'Public User' else "Website Guest",
+                'email': partner.email if partner.email else "guest@restaurant.com",
+                'user_id': request.env.user.id if not request.env.user._is_public() else False,
+            })
+
+        menu_item = request.env['restaurant.menu.item'].sudo().browse(int(menu_item_id))
+
+        request.env['restaurant.order'].sudo().create({
+            'customer_id': partner.id,               # تمرير الـ partner الإلزامي للنموذج
+            'restaurant_customer_id': customer.id,   # تمرير الـ restaurant customer لنقاط الولاء
+            'order_type': 'takeaway',
+            'state': 'draft',
+            'line_ids': [(0, 0, {
+                'menu_item_id': int(menu_item_id),
+                'quantity': int(quantity),
+                'unit_price': menu_item.price if menu_item else 0.0,
+            })]
+        })
+
+        return request.redirect('/my/orders')
+
+    # 7. مسار استفسارات الحفلات والكاترينج (تظهر فوراً في الـ CRM Pipeline)
     @http.route('/restaurant/catering', type='http', auth="public", website=True)
     def restaurant_catering_page(self, **kwargs):
         categories = request.env['restaurant.menu.category'].sudo().search([])
@@ -136,7 +165,6 @@ class RestaurantWebsite(http.Controller):
         guest_count = post.get('guest_count')
         category_id = post.get('category_id')
 
-        # الحصول على أول مرحلة في الـ Pipeline لتظهر تحت عمود New مباشرة
         first_stage = request.env['crm.stage'].sudo().search([], order='sequence asc', limit=1)
 
         lead_vals = {
@@ -145,7 +173,7 @@ class RestaurantWebsite(http.Controller):
             'email_from': email,
             'phone': phone,
             'description': description,
-            'type': 'opportunity',  # تحويلها لـ opportunity لكي تظهر في الـ Pipeline Canvas
+            'type': 'opportunity',
             'stage_id': first_stage.id if first_stage else False,
             'lead_source': 'website',
         }
@@ -156,3 +184,26 @@ class RestaurantWebsite(http.Controller):
         request.env['crm.lead'].sudo().create(lead_vals)
 
         return request.render('restaurant_management.catering_success_template', {})
+
+    # 8. مسار بوابة العميل لعرض أوردراته ونقاط الولاء
+    @http.route(['/my/orders', '/my/orders/page/<int:page>'], type='http', auth="user", website=True)
+    def portal_my_orders(self, **kwargs):
+        partner = request.env.user.partner_id
+        
+        customer = request.env['restaurant.customer'].sudo().search([
+            '|',
+            ('email', '=', partner.email),
+            ('user_id', '=', request.env.user.id)
+        ], limit=1)
+        
+        orders = []
+        if customer:
+            orders = request.env['restaurant.order'].sudo().search([
+                ('restaurant_customer_id', '=', customer.id)
+            ])
+
+        return request.render('restaurant_management.portal_my_orders_template', {
+            'orders': orders,
+            'customer': customer,
+            'page_name': 'order',
+        })

@@ -3,7 +3,6 @@
     <!-- 1. الصفحة الرئيسية لمطعم البيتزا -->
     <template id="restaurant_homepage" inherit_id="website.homepage" name="Restaurant Homepage">
         <xpath expr="//div[@id='wrap']" position="inside">
-            <!-- Hero Section (واجهة البيتزا) -->
             <section class="hero-section text-white text-center py-5" style="background: linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&amp;fit=crop&amp;w=1920&amp;q=80') center/cover no-repeat; min-height: 500px; display: flex; align-items: center; justify-content: center;">
                 <div class="container">
                     <h1 class="display-3 font-weight-bold mb-3">Authentic Italian Pizza &amp; More</h1>
@@ -12,7 +11,6 @@
                 </div>
             </section>
 
-            <!-- Features Section (مميزات مطعم البيتزا) -->
             <section class="container py-5">
                 <div class="row text-center">
                     <div class="col-md-4 mb-4">
@@ -47,12 +45,10 @@
             <div id="wrap" class="container py-5">
                 <h1 class="text-center mb-5 font-weight-bold">Our Delicious Pizza Menu</h1>
                 
-                <!-- شبكة الأطباق -->
                 <div class="row">
                     <t t-foreach="items" t-as="item">
                         <div class="col-md-4 mb-4">
                             <div class="card h-100 shadow-sm border-0">
-                                <!-- صورة الطبق -->
                                 <t t-if="item.image_1920">
                                     <img t-att-src="website.image_url(item, 'image_1920')" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Item Image"/>
                                 </t>
@@ -68,8 +64,20 @@
                                             <span class="font-weight-bold text-success h5 mb-0"><span t-field="item.price"/> EGP</span>
                                             <span class="badge badge-info p-2"><i class="fa fa-clock-o"></i> <span t-esc="item.prep_time_display"/></span>
                                         </div>
-                                        <!-- رابط التفاصيل -->
-                                        <a t-att-href="'/menu/%s/%s' % (item.id, slug(item))" class="btn btn-outline-primary btn-block font-weight-bold">View Details</a>
+                                        
+                                        <!-- أزرار التفاصيل والطلب السريع -->
+                                        <div class="d-flex gap-2">
+                                            <a t-att-href="'/menu/%s/%s' % (item.id, slug(item))" class="btn btn-outline-primary w-50 font-weight-bold">Details</a>
+                                            
+                                            <form action="/restaurant/order/submit" method="POST" class="w-50">
+                                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                                                <input type="hidden" name="menu_item_id" t-att-value="item.id"/>
+                                                <input type="hidden" name="quantity" value="1"/>
+                                                <button type="submit" class="btn btn-danger w-100 font-weight-bold shadow-sm">
+                                                    <i class="fa fa-shopping-cart"></i> Order
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -103,9 +111,23 @@
                         <p><strong>Allergens:</strong> <span t-field="item.allergens" class="text-danger"/></p>
                         <p><strong>Preparation Time:</strong> <span t-esc="item.prep_time_display"/></p>
                         
-                        <div class="mt-4">
-                            <a href="/menu" class="btn btn-secondary px-4">Back to Menu</a>
-                        </div>
+                        <!-- نموذج إرسال الأوردر مع إمكانية تحديد الكمية -->
+                        <form action="/restaurant/order/submit" method="POST" class="mt-4">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+                            <input type="hidden" name="menu_item_id" t-att-value="item.id"/>
+                            
+                            <div class="form-group mb-3" style="max-width: 200px;">
+                                <label class="font-weight-bold text-secondary">Quantity:</label>
+                                <input type="number" name="quantity" class="form-control form-control-lg text-center" value="1" min="1" required="1"/>
+                            </div>
+                            
+                            <div class="d-flex gap-3">
+                                <button type="submit" class="btn btn-danger btn-lg px-4 font-weight-bold shadow">
+                                    <i class="fa fa-paper-plane"></i> Place Draft Order
+                                </button>
+                                <a href="/menu" class="btn btn-secondary btn-lg px-4">Back to Menu</a>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
