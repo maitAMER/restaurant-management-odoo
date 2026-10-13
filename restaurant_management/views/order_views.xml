@@ -12,6 +12,8 @@
 
                 <field name="name"/>
                 <field name="customer_id"/>
+                <field name="restaurant_customer_id" optional="show"/>
+                <field name="date_order"/>
                 <field name="reservation_time"/>
                 <field name="order_type"/>
                 <field name="total_amount"/>
@@ -115,6 +117,9 @@
 
                             <field name="order_type"/>
 
+                            <field name="restaurant_customer_id" options="{'no_create': True}"/>
+                            <field name="date_order"/>
+                            <field name="reservation_time"/>                
                         </group>
 
 

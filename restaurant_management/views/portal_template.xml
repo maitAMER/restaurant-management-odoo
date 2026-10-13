@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="portal_my_orders_template" name="My Orders &amp; Loyalty">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchbar" t-value="True"/>
+
+            <div class="container mt32">
+                <h3>My Restaurant Orders</h3>
+                
+                <!-- عرض بيانات الولاء وإجمالي المصروفات للعميل -->
+                <t t-if="customer">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <div class="card p-3 bg-light">
+                                <h5 class="text-muted">Loyalty Points</h5>
+                                <h3><span t-field="customer.loyalty_points"/> Points</h3>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+
+                <t t-if="not orders">
+                    <p class="alert alert-warning">You have no orders yet!</p>
+                </t>
+                
+                <t t-if="orders">
+                    <table class="table table-hover bg-white o_portal_my_doc_table">
+                        <thead>
+                            <tr class="active">
+                                <th>Order #</th>
+                                <th>Order Date</th>
+                                <th>Order Type</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="orders" t-as="order">
+                                <td>
+                                    <span t-field="order.name"/>
+                                </td>
+                                <td>
+                                    <span t-field="order.date_order"/>
+                                </td>
+                                <td>
+                                    <span t-field="order.order_type"/>
+                                </td>
+                                <td>
+                                    <span t-field="order.state" class="badge text-bg-info"/>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </div>
+        </t>
+    </template>
+</odoo>

@@ -9,24 +9,21 @@ class RestaurantOrder(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin']
     _order = 'reservation_time desc'
 
-    name = fields.Char(
-        string='Order Reference',
-        required=True,
-        copy=False,
-        readonly=True,
-        default='New'
+    name = fields.Char(string='Order Reference', required=True, copy=False, readonly=True, default='New')
+
+    customer_id = fields.Many2one('res.partner', string='Customer', required=True)
+    # Keep the existing res.partner relation intact for compatibility; this
+    # link connects orders to the restaurant-specific customer records.
+    restaurant_customer_id = fields.Many2one(
+        'restaurant.customer', string='Restaurant Customer', ondelete='set null',
+        help='Link the restaurant customer to award loyalty points when this order is delivered.',
+    )
+    loyalty_point_awarded = fields.Boolean(
+        string='Loyalty Point Awarded', readonly=True, copy=False, default=False,
     )
 
-    customer_id = fields.Many2one(
-        'restaurant.customer',
-        string='Customer',
-        required=True,
-        ondelete='restrict'
-    )
     date_order = fields.Datetime(string='Order Date', required=True, default=fields.Datetime.now)
 
-    table_id = fields.Many2one('restaurant.table', string='Table')
-    
     order_type = fields.Selection([
         ('dine_in', 'Dine In'),
         ('takeaway', 'Takeaway'),
@@ -254,6 +251,27 @@ class RestaurantOrder(models.Model):
 
             order.order_items = '\n'.join(items)
 
+    def _award_loyalty_points(self):
+        transaction_model = self.env['restaurant.customer.loyalty.transaction']
+        eligible_orders = self.filtered(
+            lambda order: order.state == 'completed'
+            and order.restaurant_customer_id
+            and not order.loyalty_point_awarded
+        )
+        for order in eligible_orders:
+            customer = order.restaurant_customer_id
+            new_balance = customer.loyalty_points + 1
+            customer.write({'loyalty_points': new_balance})
+            transaction_model.create({
+                'customer_id': customer.id,
+                'date': fields.Datetime.now(),
+                'points_delta': 1,
+                'balance_after': new_balance,
+                'reason': f'Loyalty point for order {order.name}',
+                'source_order_id': order.id,
+            })
+            order.write({'loyalty_point_awarded': True})
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -429,3 +447,21 @@ class RestaurantOrder(models.Model):
                 )
             
     
+            # A ready order may be completed or cancelled. Final orders are
+            # otherwise locked, except for the internal loyalty-awarded flag.
+            elif order.state == 'ready':
+                if vals.keys() != {'state'} or vals.get('state') not in ('completed', 'cancelled'):
+                    raise ValidationError(
+                        'A ready order can only be completed or cancelled.'
+                    )
+            elif order.state in ('completed', 'cancelled', 'no_show'):
+                if vals != {'loyalty_point_awarded': True}:
+                    raise ValidationError(
+                        'This order cannot be edited because it is already '
+                        'Completed, Cancelled, or No Show.'
+                    )
+
+        result = super().write(vals)
+        if {'state', 'restaurant_customer_id'} & vals.keys():
+            self._award_loyalty_points()
+        return result

@@ -5,16 +5,18 @@
         <field name="name">restaurant.menu.item.tree</field>
         <field name="model">restaurant.menu.item</field>
         <field name="arch" type="xml">
-            <tree string="Menu Items" default_order="menu_section, name" decoration-muted="not availability">
+            <tree string="Menu Items" default_order="daily_special desc, menu_section, name" decoration-muted="not is_available" decoration-warning="daily_special">
                 <field name="name"/>
+                <field name="daily_special" string="Daily Special" readonly="1"/>
                 <field name="pizza_type" optional="show"/>
                 <field name="size"/>
                 <field name="price"/>
+                <field name="daily_special" optional="hide"/>
                 <field name="gross_profit" string="Profit"/>
-                <field name="margin_percent" widget="percentage" string="Margin"/>
+                <field name="margin" widget="percentage"/>
                 <field name="cost"/>
                 <field name="prep_time_display" string="Preparation Time" optional="show"/>
-                <field name="availability" readonly="1"/>
+                <field name="is_available" readonly="1"/>
             </tree>
         </field>
     </record>
@@ -24,13 +26,15 @@
         <field name="name">restaurant.menu.item.nonpizza.tree</field>
         <field name="model">restaurant.menu.item</field>
         <field name="arch" type="xml">
-            <tree string="Menu Items" default_order="name" decoration-muted="not availability">
+            <tree string="Menu Items" default_order="daily_special desc, name" decoration-muted="not is_available" decoration-warning="daily_special">
                 <field name="name"/>
+                <field name="daily_special" string="Daily Special" readonly="1"/>
                 <field name="price"/>
+                <field name="daily_special" optional="hide"/>
                 <field name="gross_profit" string="Profit" optional="hide"/>
-                <field name="margin_percent" widget="percentage" optional="hide"/>
+                <field name="margin" widget="percentage" optional="hide"/>
                 <field name="cost" optional="hide"/>
-                <field name="availability" readonly="1"/>
+                <field name="is_available" readonly="1"/>
             </tree>
         </field>
     </record>
@@ -43,12 +47,15 @@
             <form string="Menu Item">
                 <sheet>
                     <field name="image_1920" widget="image" class="oe_avatar"/>
-                    <widget name="web_ribbon" title="Unavailable" bg_color="text-bg-danger" invisible="availability"/>
+                    <widget name="web_ribbon" title="Unavailable" bg_color="text-bg-danger" invisible="is_available"/>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only h3 fw-bold"/>
                         <h1 class="display-4">
                             <field name="name" class="display-4 fw-bold" placeholder="e.g. Margherita Pizza"/>
                         </h1>
+                        <span class="badge text-bg-warning" invisible="not daily_special">
+                            <i class="fa fa-star me-1"/>Daily Special
+                        </span>
                     </div>
 
                     <group>
@@ -56,10 +63,11 @@
                             <field name="menu_section"/>
                             <field name="pizza_type" invisible="menu_section != 'pizza'"/>
                             <field name="size" invisible="menu_section != 'pizza'"/>
-                            <field name="availability" widget="boolean_toggle"/>
-                            <label for="prep_time" string="Preparation Time" invisible="menu_section != 'pizza'"/>
+                            <field name="daily_special"/>
+                            <field name="is_available" widget="boolean_toggle"/>
+                            <label for="prep_time_minutes" string="Preparation Time" invisible="menu_section != 'pizza'"/>
                             <div class="o_row" invisible="menu_section != 'pizza'">
-                                <field name="prep_time" options="{'type': 'number'}"/>
+                                <field name="prep_time_minutes" options="{'type': 'number'}"/>
                                 <span class="text-muted">min</span>
                             </div>
                         </group>
@@ -67,22 +75,13 @@
                             <field name="price" required="1"/>
                             <field name="cost" required="1"/>
                             <field name="gross_profit"/>
-                            <field name="margin_percent" widget="percentage"/>
+                            <field name="margin" widget="percentage"/>
                         </group>
                     </group>
 
                     <notebook>
-                        <page string="Ingredients" invisible="menu_section != 'pizza'">
-                            <div class="alert alert-warning" role="alert" invisible="not ingredient_warning">
-                                <field name="ingredient_warning" nolabel="1"/>
-                            </div>
-                            <field name="ingredient_line_ids" nolabel="1">
-                                <tree string="Ingredient Lines" editable="bottom">
-                                    <field name="name" placeholder="e.g. Mozzarella"/>
-                                    <field name="quantity"/>
-                                    <field name="unit"/>
-                                </tree>
-                            </field>
+                        <page string="Description">
+                            <field name="description" placeholder="Describe this menu item..." nolabel="1"/>
                         </page>
                         <page string="Allergen Information">
                             <field name="allergens" placeholder="List allergens and dietary warnings..." nolabel="1"/>
@@ -108,9 +107,10 @@
                 <field name="menu_section"/>
                 <field name="pizza_type"/>
                 <field name="price"/>
+                <field name="daily_special"/>
                 <field name="image_1920"/>
                 <field name="prep_time_display"/>
-                <field name="availability"/>
+                <field name="is_available"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click o_kanban_card">
@@ -123,8 +123,11 @@
                                 <div class="o_kanban_record_headings">
                                     <strong class="o_kanban_record_title"><field name="name"/></strong>
                                     <div class="text-muted"><field name="menu_section"/></div>
+                                    <span t-if="record.daily_special.raw_value" class="badge rounded-pill text-bg-warning mt-1">
+                                        <i class="fa fa-star me-1"/>Daily Special
+                                    </span>
                                 </div>
-                                <span t-if="record.availability.raw_value" class="badge rounded-pill text-bg-success">Available</span>
+                                <span t-if="record.is_available.raw_value" class="badge rounded-pill text-bg-success">Available</span>
                                 <span t-else="" class="badge rounded-pill text-bg-secondary">Unavailable</span>
                             </div>
                             <div class="o_kanban_record_bottom">
@@ -154,14 +157,14 @@
                 <field name="name" string="Menu Item"/>
                 <field name="menu_section" string="Menu Section"/>
                 <field name="pizza_type" string="Pizza Type"/>
-                <field name="ingredient_search_text" string="Ingredients"/>
                 <field name="allergens" string="Allergens"/>
-                <filter name="available" string="Available" domain="[('availability', '=', True)]"/>
-                <filter name="unavailable" string="Unavailable" domain="[('availability', '=', False)]"/>
+                <filter name="available" string="Available" domain="[('is_available', '=', True)]"/>
+                <filter name="unavailable" string="Unavailable" domain="[('is_available', '=', False)]"/>
+                <filter name="daily_special" string="Daily Specials" domain="[('daily_special', '=', True)]"/>
                 <separator/>
                 <group expand="0" string="Group By">
                     <filter name="group_category" string="Menu Section" context="{'group_by': 'menu_section'}"/>
-                    <filter name="group_availability" string="Availability" context="{'group_by': 'availability'}"/>
+                    <filter name="group_availability" string="Availability" context="{'group_by': 'is_available'}"/>
                 </group>
             </search>
         </field>
@@ -196,19 +199,16 @@
 
 
     <record id="action_restaurant_menu_items_tree_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_restaurant_menu_item_tree"/>
         <field name="act_window_id" ref="action_restaurant_menu_items"/>
     </record>
     <record id="action_restaurant_desserts_tree_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_restaurant_nonpizza_menu_item_tree"/>
         <field name="act_window_id" ref="action_restaurant_desserts"/>
     </record>
     <record id="action_restaurant_drinks_tree_view" model="ir.actions.act_window.view">
-        <field name="sequence" eval="1"/>
         <field name="view_mode">tree</field>
         <field name="view_id" ref="view_restaurant_nonpizza_menu_item_tree"/>
         <field name="act_window_id" ref="action_restaurant_drinks"/>

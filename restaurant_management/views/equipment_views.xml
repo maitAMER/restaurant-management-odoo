@@ -8,6 +8,7 @@
                 <field name="name"/>
                 <field name="serial_number"/>
                 <field name="category"/>
+                <field name="equipment_type"/>
                 <field name="location"/>
                 <field name="purchase_date" optional="hide"/>
                 <field name="warranty_expiry_date" optional="hide"/>
@@ -28,8 +29,14 @@
                     <button name="action_view_maintenance" type="object"
                             string="Maintenance Tickets" class="oe_highlight"
                             invisible="not id"/>
+                    <button name="action_mark_out_of_service" type="object"
+                            string="Mark Out of Service" class="btn-danger"
+                            invisible="status != 'working'"/>
+                    <button name="action_mark_working" type="object"
+                            string="Mark Working" class="oe_highlight"
+                            invisible="status != 'out_of_service'"/>
                     <field name="status" widget="statusbar"
-                           statusbar_visible="working,under_maintenance,out_of_service"/>
+                           statusbar_visible="working,under_maintenance,out_of_service" readonly="1"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -40,6 +47,7 @@
                         <group string="Equipment Details">
                             <field name="serial_number"/>
                             <field name="category"/>
+                            <field name="equipment_type" required="1"/>
                             <field name="location"/>
                         </group>
                         <group string="Purchase &amp; Warranty">
@@ -53,9 +61,9 @@
                             <field name="maintenance_ids" context="{'default_equipment_id': id}">
                                 <tree >
                                     <field name="name"/>
-                                    <field name="request_date"/>
-                                    <field name="priority" widget="priority"/>
-                                    <field name="technician_id"/>
+                                    <field name="scheduled_date"/>
+                                    <field name="urgency" widget="priority"/>
+                                    <field name="assigned_to"/>
                                     <field name="state" widget="badge"/>
                                 </tree>
                             </field>
@@ -74,6 +82,7 @@
                 <field name="name"/>
                 <field name="serial_number"/>
                 <field name="category"/>
+                <field name="equipment_type"/>
                 <field name="location"/>
                 <filter name="working" string="Working" domain="[('status', '=', 'working')]"/>
                 <filter name="maintenance" string="Under Maintenance" domain="[('status', '=', 'under_maintenance')]"/>
