@@ -30,7 +30,10 @@ class RestaurantCustomer(models.Model):
     )
     address = fields.Text(string='Address', tracking=True)
     date_of_birth = fields.Date(string='Date of Birth')
-    loyalty_points = fields.Integer(string='Loyalty Points', default=0, tracking=True, readonly=True)
+    loyalty_points = fields.Integer(
+        string='Loyalty Points', default=0, readonly=True,
+        groups="restaurant_management.group_shift_manager",
+    )
     loyalty_transaction_ids = fields.One2many(
         'restaurant.customer.loyalty.transaction', 'customer_id', string='Loyalty History',
     )
@@ -140,6 +143,8 @@ class RestaurantCustomer(models.Model):
 
     def action_open_loyalty_wizard(self):
         self.ensure_one()
+        if not self.env.user.has_group('restaurant_management.group_shift_manager'):
+            raise AccessError('Only Shift Managers can adjust loyalty points.')
         return {
             'type': 'ir.actions.act_window',
             'name': 'Adjust Loyalty Points',
@@ -218,6 +223,8 @@ class RestaurantCustomerLoyaltyWizard(models.TransientModel):
 
     def action_apply(self):
         self.ensure_one()
+        if not self.env.user.has_group('restaurant_management.group_shift_manager'):
+            raise AccessError('Only Shift Managers can adjust loyalty points.')
         if not self.points_delta:
             raise UserError('Enter a points change greater than or less than zero.')
         new_balance = self.customer_id.loyalty_points + self.points_delta
