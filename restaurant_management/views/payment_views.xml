@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+  <record id="view_restaurant_payment_search" model="ir.ui.view">
+    <field name="name">restaurant.payment.search</field>
+    <field name="model">restaurant.payment</field>
+    <field name="arch" type="xml">
+        <search>
+            <filter string="Paid" name="paid" domain="[('state','=','paid')]"/>
+            <filter string="Refunded / Cancelled" name="refunded" domain="[('state','=','refunded')]"/>
+            <filter string="Draft" name="draft" domain="[('state','=','draft')]"/>
+            <filter string="Pending" name="pending" domain="[('state','=','pending')]"/>
+        </search>
+    </field>
+</record>
+
     <!-- Payments List -->
     <record id="view_restaurant_payment_list" model="ir.ui.view">
         <field name="name">restaurant.payment.list</field>
@@ -200,6 +213,7 @@
         <field name="res_model">restaurant.payment</field>
 
         <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_restaurant_payment_search"/>
 
     </record>
 

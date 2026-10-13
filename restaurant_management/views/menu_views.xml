@@ -73,9 +73,17 @@
                         </group>
                         <group string="Pricing">
                             <field name="price" required="1"/>
+
                             <field name="cost" required="1"/>
                             <field name="gross_profit"/>
                             <field name="margin" widget="percentage"/>
+
+                        </group>
+                        <group string="Costs &amp; Margins" groups="restaurant_management.group_shift_manager">
+                            <field name="cost" groups="restaurant_management.group_shift_manager" required="1"/>
+                            <field name="gross_profit" groups="restaurant_management.group_shift_manager"/>
+                            <field name="margin" widget="percentage" groups="restaurant_management.group_shift_manager"/>
+
                         </group>
                     </group>
 

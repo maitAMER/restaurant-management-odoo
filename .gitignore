@@ -1,7 +1,2 @@
 __pycache__/
 *.pyc
-restaurant_management/models/__pycache__/__init__.cpython-312.pyc
-restaurant_management/models/__pycache__/customer.cpython-312.pyc
-restaurant_management/models/__pycache__/menu.cpython-312.pyc
-restaurant_management/models/__pycache__/order_line.cpython-312.pyc
-restaurant_management/models/__pycache__/tables.cpython-312.pyc`
