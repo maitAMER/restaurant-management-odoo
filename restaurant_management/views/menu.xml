@@ -82,4 +82,13 @@
                 sequence="80"
             />
 
+    <menuitem id="menu_restaurant_reporting" name="Reporting"
+            parent="menu_restaurant_management_root" sequence="90"/>
+
+    <menuitem id="menu_restaurant_sales_report"
+          name="Sales Report"
+          parent="menu_restaurant_management_root"
+          action="restaurant_management.action_restaurant_sales_report_wizard"
+          sequence="90"/>
+
 </odoo>

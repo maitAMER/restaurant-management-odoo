@@ -80,6 +80,7 @@ class RestaurantMenuItem(models.Model):
     margin = fields.Float(
         string='Margin', compute='_compute_profit', digits=(16, 2), store=True,
     )
+
     prep_time = fields.Integer(
         string='Preparation Time',
         help='Preparation duration in minutes.',
