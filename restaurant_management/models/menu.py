@@ -75,10 +75,19 @@ class RestaurantMenuItem(models.Model):
     )
     
     price = fields.Float(string='Price', required=True, digits='Product Price', tracking=True)
-    cost = fields.Float(string='Cost', required=True, digits='Product Price', tracking=True)
-    gross_profit = fields.Float(string='Profit', compute='_compute_profit', digits='Product Price')
+    cost = fields.Float(
+        string='Cost', required=True, digits='Product Price',
+        groups="restaurant_management.group_shift_manager",
+    )
+    gross_profit = fields.Float(
+        string='Profit', compute='_compute_profit',
+        groups="restaurant_management.group_shift_manager",
+        digits='Product Price', store=True, compute_sudo=True,
+    )
     margin = fields.Float(
-        string='Margin', compute='_compute_profit', digits=(16, 2), store=True,
+        string='Margin', compute='_compute_profit',
+        groups="restaurant_management.group_shift_manager",
+        digits=(16, 2), store=True, compute_sudo=True,
     )
 
     prep_time = fields.Integer(

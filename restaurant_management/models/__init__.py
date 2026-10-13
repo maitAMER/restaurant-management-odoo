@@ -12,3 +12,4 @@ from . import payment
 from . import payment_split_line
 from . import crm_lead
 from . import tables
+from . import res_users
