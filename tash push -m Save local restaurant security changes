@@ -1,0 +1,48 @@
+[1mdiff --git a/restaurant_management/__manifest__.py b/restaurant_management/__manifest__.py[m
+[1mindex fe72898..9a9bc11 100644[m
+[1m--- a/restaurant_management/__manifest__.py[m
+[1m+++ b/restaurant_management/__manifest__.py[m
+[36m@@ -21,6 +21,7 @@[m
+     },[m
+ [m
+     'data': [[m
+[32m+[m[32m        'security/restaurant_security.xml',[m
+         'security/ir.model.access.csv',[m
+         'data/ir_sequence_data.xml',[m
+         'views/menu_views.xml',[m
+[1mdiff --git a/restaurant_management/security/restaurant_security.xml b/restaurant_management/security/restaurant_security.xml[m
+[1mindex 685dc4d..84ccf5f 100644[m
+[1m--- a/restaurant_management/security/restaurant_security.xml[m
+[1m+++ b/restaurant_management/security/restaurant_security.xml[m
+[36m@@ -1,22 +1,28 @@[m
+ <?xml version="1.0" encoding="utf-8"?>[m
+ <odoo>[m
+[32m+[m[32m    <record id="module_category_restaurant_management" model="ir.module.category">[m
+[32m+[m[32m        <field name="name">Restaurant Management</field>[m
+[32m+[m[32m        <field name="sequence">45</field>[m
+[32m+[m[32m    </record>[m
+[32m+[m
+     <!-- Groups -->[m
+     <record id="group_restaurant_user" model="res.groups">[m
+         <field name="name">Restaurant User (Waiter/Driver)</field>[m
+[31m-        <field name="category_id" ref="base.module_category_hidden"/>[m
+[32m+[m[32m        <field name="category_id" ref="restaurant_management.module_category_restaurant_management"/>[m
+         <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>[m
+[32m+[m[32m        <field name="users" eval="[(4, ref('base.user_admin'))]"/>[m
+     </record>[m
+ [m
+     <record id="group_shift_manager" model="res.groups">[m
+         <field name="name">Shift Manager</field>[m
+[31m-        <field name="category_id" ref="base.module_category_hidden"/>[m
+[32m+[m[32m        <field name="category_id" ref="restaurant_management.module_category_restaurant_management"/>[m
+         <field name="implied_ids" eval="[(4, ref('restaurant_management.group_restaurant_user'))]"/>[m
+         <field name="users" eval="[(4, ref('base.user_root'))]"/>[m
+     </record>[m
+ [m
+     <record id="group_restaurant_cashier" model="res.groups">[m
+         <field name="name">Restaurant Cashier</field>[m
+[31m-        <field name="category_id" ref="base.module_category_hidden"/>[m
+[32m+[m[32m        <field name="category_id" ref="restaurant_management.module_category_restaurant_management"/>[m
+         <field name="implied_ids" eval="[(4, ref('restaurant_management.group_restaurant_user'))]"/>[m
+     </record>[m
+ [m

@@ -39,7 +39,7 @@
         </xpath>
     </template>
 
-    <!-- 2. قالب صفحة المنيو العامة -->
+    <!-- 2. قالب صفحة المنيو العامة مع صور متنوعة بالبرمجة -->
     <template id="menu_catalog_template" name="Restaurant Menu">
         <t t-call="website.layout">
             <div id="wrap" class="container py-5">
@@ -49,11 +49,20 @@
                     <t t-foreach="items" t-as="item">
                         <div class="col-md-4 mb-4">
                             <div class="card h-100 shadow-sm border-0">
-                                <t t-if="item.image_1920">
+                                <!-- تم تحديث الشرط ليتأكد أن الحقل يحتوي على بيانات فعلية وليست فارغة -->
+                                <t t-if="item.image_1920 and len(str(item.image_1920)) > 50">
                                     <img t-att-src="website.image_url(item, 'image_1920')" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Item Image"/>
                                 </t>
                                 <t t-else="">
-                                    <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&amp;fit=crop&amp;w=600&amp;q=80" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Default Image"/>
+                                    <!-- روابط صور بيتزا متنوعة تتبدل أوتوماتيكياً بناءً على ID الصنف -->
+                                    <t t-set="pizza_images" t-value="[
+                                        'https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&amp;fit=crop&amp;w=600&amp;q=80',
+                                        'https://images.unsplash.com/photo-1534308983496-4fabb1a015ee?auto=format&amp;fit=crop&amp;w=600&amp;q=80',
+                                        'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&amp;fit=crop&amp;w=600&amp;q=80',
+                                        'https://images.unsplash.com/photo-1595750543058-297c41c7b399?auto=format&amp;fit=crop&amp;w=600&amp;q=80',
+                                        'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&amp;fit=crop&amp;w=600&amp;q=80'
+                                    ]"/>
+                                    <img t-att-src="pizza_images[item.id % len(pizza_images)]" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Pizza Image"/>
                                 </t>
                                 
                                 <div class="card-body d-flex flex-column">
@@ -94,11 +103,11 @@
             <div id="wrap" class="container py-5">
                 <div class="row align-items-center">
                     <div class="col-md-6 mb-4 mb-md-0">
-                        <t t-if="item.image_1920">
+                        <t t-if="item.image_1920 and len(str(item.image_1920)) > 50">
                             <img t-att-src="website.image_url(item, 'image_1920')" class="img-fluid rounded shadow w-100" style="max-height: 400px; object-fit: cover;" alt="Item Details"/>
                         </t>
                         <t t-else="">
-                            <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?auto=format&amp;fit=crop&amp;w=600&amp;q=80" class="img-fluid rounded shadow w-100" alt="Default Details"/>
+                            <img t-att-src="'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&amp;fit=crop&amp;w=800&amp;q=80'" class="img-fluid rounded shadow w-100" alt="Default Details"/>
                         </t>
                     </div>
                     <div class="col-md-6">

@@ -83,7 +83,7 @@ class SalesReportWizard(models.TransientModel):
         self.ensure_one()
         start, end = self._period_bounds()
         domain = [
-            ('state', '=', 'delivered'),
+            ('state', '=', 'completed'),
             ('date_order', '>=', start),
             ('date_order', '<=', end),
         ]
@@ -105,8 +105,8 @@ class SalesReportWizard(models.TransientModel):
         return product.sudo()[COST_FIELD] or 0.0
 
     def _order_cost(self, order):
-        return sum(l.quantity * self._unit_cost(l.product_id)
-                   for l in order.order_line_ids)
+        return sum(l.quantity * self._unit_cost(l.menu_item_id)
+                   for l in order.line_ids)
 
     def _compute_report(self):
         """Fill the preview lines and the totals."""
@@ -151,11 +151,11 @@ class SalesReportWizard(models.TransientModel):
 
     def _top_items(self, orders, limit=15):
         items = {}
-        for line in orders.mapped('order_line_ids'):
-            name = line.product_id.name or _('(unknown)')
+        for line in orders.mapped('line_ids'):
+            name = line.menu_item_id.name or _('(unknown)')
             rec = items.setdefault(name, [0.0, 0.0])
             rec[0] += line.quantity
-            rec[1] += line.subtotal
+            rec[1] += line.price_subtotal
         return sorted(items.items(), key=lambda kv: kv[1][1], reverse=True)[:limit]
 
     # Buttons
