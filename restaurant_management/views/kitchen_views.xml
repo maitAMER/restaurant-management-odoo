@@ -15,8 +15,8 @@
                 <!-- Fields -->
                 <field name="name"/>
                 <field name="customer_id"/>
-                <field name="date_order"/>
                 <field name="order_type"/>
+                <field name="reservation_time"/>
                 <field name="state"/>
                 <field name="order_items"/>
                 <field name="total_amount"/>
@@ -46,10 +46,10 @@
                                 <field name="order_type"/>
                             </p>
 
-                            <!-- Order Date -->
+                            <!-- Reservation Time -->
                             <p>
                                 <strong>Time:</strong>
-                                <field name="date_order"/>
+                                <field name="reservation_time"/>
                             </p>
 
                             <hr/>
@@ -75,21 +75,32 @@
                                 <field name="total_amount"/>
                             </p>
 
-                            <!-- Start Preparing Button -->
+                            <!-- Start Preparing -->
                             <button
                                 name="action_prepare"
                                 type="object"
                                 string="Start Preparing"
                                 class="btn btn-primary"
-                                invisible="state != 'confirmed'"/>
+                                invisible="state != 'confirmed'"
+                            />
 
-                            <!-- Mark Ready Button -->
+                            <!-- Mark Ready -->
                             <button
                                 name="action_ready"
                                 type="object"
                                 string="Mark Ready"
                                 class="btn btn-success"
-                                invisible="state != 'preparing'"/>
+                                invisible="state != 'preparing'"
+                            />
+
+                            <!-- Complete -->
+                            <button
+                                name="action_complete"
+                                type="object"
+                                string="Complete"
+                                class="btn btn-success"
+                                invisible="state != 'ready'"
+                            />
 
                         </div>
 
@@ -113,11 +124,16 @@
 
         <field name="view_mode">kanban</field>
 
-        <field name="view_id" ref="view_restaurant_order_kitchen_kanban"/>
+        <field
+            name="view_id"
+            ref="view_restaurant_order_kitchen_kanban"
+        />
 
-        <!-- Only show orders that kitchen needs -->
+        <!-- Kitchen works with active orders -->
         <field name="domain">
-            [('state', 'in', ['confirmed', 'preparing', 'ready'])]
+            [
+                ('state', 'in', ['confirmed', 'preparing', 'ready'])
+            ]
         </field>
 
         <field name="context">
@@ -128,6 +144,7 @@
 
     </record>
 
-
 </odoo>
+
+
 

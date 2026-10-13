@@ -2,22 +2,25 @@ from odoo import models, fields, api
 
 
 class RestaurantTable(models.Model):
-    _name = 'restaurant.table'
-    _description = 'Restaurant Table'
-    _rec_name = 'name'
-    _order = 'name asc'
+    _name='restaurant.table'
+    _description='Restaurant Table'
+    _rec_name='name'
+    _order='name asc'
 
-    
-    name = fields.Char(string='Table Name', copy=False, default='New', readonly=True)
-    capacity = fields.Integer(string='Capacity', required=True, default=2)
+    name = fields.Char(string='Table Name', required=True)
+
+    active = fields.Boolean(string='Archived switch', default=True)
+    capacity = fields.Integer(
+        string='Capacity',
+        required=True,
+        default=2
+    )
+
     location = fields.Selection([
     ('indoor', 'Indoor'),
     ('terrace', 'Terrace'),
     ('private', 'Private'),
     ], string='Location / Section', default='indoor', required=True)
-
-    # Odoo's archive switch (kept, but not shown in the views)
-    active = fields.Boolean(string='Archived switch', default=True)
 
     reservation_ids = fields.One2many(
         'restaurant.reservation', 'table_id', string='Reservations')

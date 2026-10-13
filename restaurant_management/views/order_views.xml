@@ -1,85 +1,174 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <odoo>
 
-<!--Orders List View-->
+    <!-- Orders List View -->
     <record id="view_order_tree" model="ir.ui.view">
+
         <field name="name">order.tree</field>
         <field name="model">restaurant.order</field>
+
         <field name="arch" type="xml">
 
             <tree string="Orders">
+
                 <field name="name"/>
                 <field name="customer_id"/>
-                <field name="date_order"/>
+                <field name="reservation_time"/>
                 <field name="order_type"/>
                 <field name="total_amount"/>
                 <field name="state"/>
+
             </tree>
+
         </field>
+
     </record>
 
-    <!--Orders Form View-->
+
+    <!-- Orders Form View -->
     <record id="view_order_form" model="ir.ui.view">
+
         <field name="name">restaurant.order.form</field>
         <field name="model">restaurant.order</field>
+
         <field name="arch" type="xml">
+
             <form string="Order">
+
                 <header>
 
-                    <button name="action_confirm" type="object" string="Confirm" class="btn-primary" invisible="state != 'draft'"/>
+                    <button
+                        name="action_confirm"
+                        type="object"
+                        string="Confirm"
+                        class="btn-primary"
+                        invisible="state != 'draft'"
+                    />
 
-                    <button name="action_prepare" type="object" string="Start Preparing" class="btn-secondary" invisible="state != 'confirmed'"/>
+                    <button
+                        name="action_prepare"
+                        type="object"
+                        string="Start Preparing"
+                        class="btn-secondary"
+                        invisible="state != 'confirmed'"
+                    />
 
-                    <button name="action_ready" type="object" string="Ready" class="btn-success" invisible="state != 'preparing'"/>
-                    
-                    <button name="action_deliver" type="object" string="Deliver" class="btn-success" invisible="state != 'ready'"/>
+                    <button
+                        name="action_ready"
+                        type="object"
+                        string="Ready"
+                        class="btn-success"
+                        invisible="state != 'preparing'"
+                    />
+                    <button
+                        name="action_complete"
+                        type="object"
+                        string="Complete"
+                        class="btn-success"
+                        invisible="state != 'ready'"
+                    />
 
-                    <button name="action_cancel" type="object" string="Cancel" class="btn-success" invisible="state in ['delivered', 'cancelled']"/>  
+                    <button name="action_cancel"
+                        string="Cancel"
+                        type="object"
+                        invisible="state in ['completed', 'cancelled', 'no_show']"/>
 
-                    <field name="state" widget="statusbar"
-                       statusbar_visible="draft,confirmed,preparing,ready,delivered,cancelled"/>
+                    <field
+                        name="state"
+                        widget="statusbar"
+                        statusbar_visible="draft,confirmed,preparing,ready,completed,cancelled,no_show"
+                    />
 
                 </header>
+
+
                 <sheet>
+
                     <div class="oe_title">
+
                         <h1>
                             <field name="name"/>
                         </h1>
+
                     </div>
-                    <group> 
+
+
+                    <group>
+
                         <group>
                             <field name="customer_id"/>
-                            <field name="date_order"/>
+                            <field name="reservation_time"/>                
                         </group>
+
                         <group>
                             <field name="order_type"/>
                             <field name="total_amount" readonly="1"/>
                         </group>
+
                     </group>
+
+
                     <notebook>
+
                         <page string="Order Lines">
-                            <field name="order_line_ids">
+
+                            <field name="line_ids">
+
                                 <tree editable="bottom">
-                                    <field name="product_id" string="Menu Item"/>
-                                    <field name="menu_section" string="Section"/>
+
+                                    <field name="menu_item_id" string="Menu Item" required="1"/>
                                     <field name="quantity"/>
-                                    <field name="price_unit"/>
-                                    <field name="subtotal" readonly="1"/>
+                                    <field name="unit_price" string="Unit Price"/>
+                                    <field name="price_subtotal" readonly="1"/>
+                                    <field name="tax_amount" string="Tax Amount"/>
+                                    <field name="total_amount" readonly="1"/>
+                                    <field name="notes" placeholder="e.g., special instructions"/>
                                 </tree>
+
                             </field>
+
                         </page>
+
                     </notebook>
+
                 </sheet>
+
             </form>
+
         </field>
+
     </record>
 
+
+    <!-- Orders Action -->
     <record id="action_restaurant_orders" model="ir.actions.act_window">
+
         <field name="name">Orders</field>
         <field name="res_model">restaurant.order</field>
         <field name="view_mode">tree,form</field>
+
     </record>
 
+    <record id="ir_cron_close_stale_orders" model="ir.cron">
+
+        <field name="name">Close Stale Restaurant Orders</field>
+
+        <field name="model_id" ref="model_restaurant_order"/>
+
+        <field name="state">code</field>
+
+        <field name="code">model._cron_close_stale_orders()</field>
+
+        <field name="interval_number">10</field>
+
+        <field name="interval_type">minutes</field>
+
+        <field name="active">True</field>
+
+    </record>
 </odoo>
+
+
 
     

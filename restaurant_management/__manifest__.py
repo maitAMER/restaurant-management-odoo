@@ -13,6 +13,7 @@
     'version': '0.1',
 
     'depends': ['base', 'mail', 'product', 'crm', 'website'],
+    
 
     'data': [
         'security/ir.model.access.csv',
