@@ -21,6 +21,7 @@
     },
 
     'data': [
+        'security/restaurant_security.xml',
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
         'views/menu_views.xml',
@@ -42,6 +43,7 @@
         # --- new: PDF receipt ---
         'report/report.xml',
         'report/restaurant_report_templates.xml',
+        'views/res_users_views.xml',
         # menu stays last
         'views/menu.xml',
     ],
