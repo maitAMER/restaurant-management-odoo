@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_restaurant_sales_report_wizard_form" model="ir.ui.view">
+        <field name="name">restaurant.sales_report_wizard.form</field>
+        <field name="model">restaurant.sales_report_wizard</field>
+        <field name="arch" type="xml">
+            <form string="Sales Report">
+                <field name="previewed" invisible="1"/>
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group>
+                        <field name="order_type"/>
+                    </group>
+                </group>
+
+                <div invisible="not previewed">
+                    <group string="Summary">
+                        <group>
+                            <field name="total_orders"/>
+                            <field name="total_sales" class="fw-bold"/>
+                            <field name="total_cost"/>
+                            <field name="net_profit" class="fw-bold text-success"
+                                   invisible="net_loss &gt; 0"/>
+                            <field name="net_loss" class="fw-bold text-danger"
+                                   invisible="net_loss &lt;= 0"/>
+                        </group>
+                        <group>
+                            <field name="total_tips"/>
+                            <field name="average_order"/>
+                        </group>
+                    </group>
+                    <separator string="Daily Sales"/>
+                    <field name="line_ids" nolabel="1">
+                        <tree create="false" edit="false" delete="false">
+                            <field name="date"/>
+                            <field name="order_count" sum="Orders"/>
+                            <field name="total_amount" sum="Sales"/>
+                            <field name="cost" sum="Cost"/>
+                            <field name="profit" sum="Profit / Loss"
+                                   decoration-danger="profit &lt; 0"
+                                   decoration-success="profit &gt;= 0"/>
+                        </tree>
+                    </field>
+                </div>
+
+                <footer>
+                    <button name="action_preview" type="object" string="Preview"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button name="action_export_excel" type="object" string="Export to Excel"
+                            class="btn-secondary" icon="fa-file-excel-o"/>
+                    <button string="Close" class="btn-secondary"
+                            special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_restaurant_sales_report_wizard" model="ir.actions.act_window">
+        <field name="name">Sales Report</field>
+        <field name="res_model">restaurant.sales_report_wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -13,3 +13,5 @@ access_restaurant_order,restaurant.order,model_restaurant_order,base.group_user,
 access_restaurant_order_line,restaurant.order.line,model_restaurant_order_line,base.group_user,1,1,1,1
 access_restaurant_payment,restaurant.payment,model_restaurant_payment,base.group_user,1,1,1,1
 access_restaurant_payment_split_line_user,restaurant.payment.split.line.user,model_restaurant_payment_split_line,base.group_user,1,1,1,1
+access_restaurant_sales_report_wizard,restaurant.sales_report_wizard,model_restaurant_sales_report_wizard,base.group_user,1,1,1,1
+access_restaurant_sales_report_wizard_line,restaurant.sales_report_wizard.line,model_restaurant_sales_report_wizard_line,base.group_user,1,1,1,1
