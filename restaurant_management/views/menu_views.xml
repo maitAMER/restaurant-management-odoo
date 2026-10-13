@@ -12,9 +12,9 @@
                 <field name="size"/>
                 <field name="price"/>
                 <field name="daily_special" optional="hide"/>
-                <field name="gross_profit" string="Profit"/>
-                <field name="margin" widget="percentage"/>
-                <field name="cost"/>
+                <field name="gross_profit" string="Profit" groups="restaurant_management.group_shift_manager"/>
+                <field name="margin" widget="percentage" groups="restaurant_management.group_shift_manager"/>
+                <field name="cost" groups="restaurant_management.group_shift_manager"/>
                 <field name="prep_time_display" string="Preparation Time" optional="show"/>
                 <field name="is_available" readonly="1"/>
             </tree>
@@ -31,9 +31,9 @@
                 <field name="daily_special" string="Daily Special" readonly="1"/>
                 <field name="price"/>
                 <field name="daily_special" optional="hide"/>
-                <field name="gross_profit" string="Profit" optional="hide"/>
-                <field name="margin" widget="percentage" optional="hide"/>
-                <field name="cost" optional="hide"/>
+                <field name="gross_profit" string="Profit" groups="restaurant_management.group_shift_manager" optional="hide"/>
+                <field name="margin" widget="percentage" groups="restaurant_management.group_shift_manager" optional="hide"/>
+                <field name="cost" groups="restaurant_management.group_shift_manager" optional="hide"/>
                 <field name="is_available" readonly="1"/>
             </tree>
         </field>
@@ -74,9 +74,9 @@
                         <group string="Pricing">
                             <field name="price" required="1"/>
 
-                            <field name="cost" required="1"/>
-                            <field name="gross_profit"/>
-                            <field name="margin" widget="percentage"/>
+                            <field name="cost" groups="restaurant_management.group_shift_manager" required="1"/>
+                            <field name="gross_profit" groups="restaurant_management.group_shift_manager"/>
+                            <field name="margin" groups="restaurant_management.group_shift_manager" widget="percentage"/>
 
                         </group>
                         <group string="Costs &amp; Margins" groups="restaurant_management.group_shift_manager">
