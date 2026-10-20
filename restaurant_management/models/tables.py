@@ -31,6 +31,7 @@ class RestaurantTable(models.Model):
         string='Orders')
     
     reservation_count = fields.Integer(compute='_compute_reservation_count')
+    active_order_count = fields.Integer(compute='_compute_active_order_count')
 
     availability = fields.Selection(
         [('available', 'Available'), ('reserved', 'Reserved now')],
@@ -44,6 +45,28 @@ class RestaurantTable(models.Model):
     def _compute_reservation_count(self):
         for rec in self:
             rec.reservation_count = len(rec.reservation_ids)
+
+    @api.depends('order_ids.state')
+    def _compute_active_order_count(self):
+        active_states = ('confirmed', 'preparing', 'ready')
+        for table in self:
+            table.active_order_count = len(
+                table.order_ids.filtered(lambda order: order.state in active_states)
+            )
+
+    def action_view_active_orders(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Active Orders',
+            'res_model': 'restaurant.order',
+            'view_mode': 'tree,form',
+            'domain': [
+                ('table_id', '=', self.id),
+                ('state', 'in', ['confirmed', 'preparing', 'ready']),
+            ],
+            'context': {'default_table_id': self.id},
+        }
 
     @api.depends(
     'reservation_ids.state',

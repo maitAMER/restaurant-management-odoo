@@ -48,6 +48,9 @@
         # menu stays last
         'views/menu.xml',
     ],
+    'demo': [
+        'data/Demo/restaurant_data.xml',
+    ],
     'license': 'LGPL-3',
     'installable': True,
     'application': True,

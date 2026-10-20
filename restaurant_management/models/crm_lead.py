@@ -52,10 +52,24 @@ class CrmLead(models.Model):
         email = lead.email_from or lead.partner_id.email or False
         customer_name = lead.contact_name or lead.partner_id.name or lead.name
 
-        # Find an existing customer by email
+        partner = lead.partner_id
+        if not partner and email:
+            partner = self.env['res.partner'].search(
+                [('email', '=ilike', email.strip())], limit=1,
+            )
+        if not partner:
+            partner = self.env['res.partner'].create({
+                'name': customer_name,
+                'email': email,
+                'phone': lead.phone or False,
+            })
+
+        # Find an existing restaurant customer by email
         customer = self.env['restaurant.customer']
-        if email:
-            customer = customer.search([('email', '=ilike', email)], limit=1)
+        if lead.customer_id:
+            customer = lead.customer_id
+        elif email:
+            customer = customer.search([('email', '=ilike', email.strip())], limit=1)
 
         # Create customer if it does not exist
         if not customer:
@@ -68,10 +82,29 @@ class CrmLead(models.Model):
                 customer_vals['mobile'] = lead.mobile
             customer = self.env['restaurant.customer'].create(customer_vals)
 
+        menu_item_domain = [('is_available', '=', True)]
+        if lead.menu_category_id:
+            menu_item_domain.append(('category_id', '=', lead.menu_category_id.id))
+        menu_item = self.env['restaurant.menu.item'].search(
+            menu_item_domain, order='name, id', limit=1,
+        )
+        if not menu_item and lead.menu_category_id:
+            menu_item = self.env['restaurant.menu.item'].search(
+                [('is_available', '=', True)], order='name, id', limit=1,
+            )
+        if not menu_item:
+            raise UserError(_('Add an available menu item before converting this lead.'))
+
         order = self.env['restaurant.order'].create({
-            'customer_id': customer.id,
-            'order_type': 'dine_in',
+            'customer_id': partner.id,
+            'restaurant_customer_id': customer.id,
+            'order_type': 'takeaway',
             'state': 'draft',
+            'line_ids': [(0, 0, {
+                'menu_item_id': menu_item.id,
+                'quantity': 1,
+                'unit_price': menu_item.price,
+            })],
         })
 
         # Link customer and order to the lead

@@ -11,7 +11,7 @@ class RestaurantOrder(models.Model):
 
     name = fields.Char(string='Order Reference', required=True, copy=False, readonly=True, default='New')
 
-    customer_id = fields.Many2one('res.partner', string='Shift Manager', required=True)
+    customer_id = fields.Many2one('res.partner', string='Shift Manager', required=False)
     # Keep the existing res.partner relation intact for compatibility; this
     # link connects orders to the restaurant-specific customer records.
     restaurant_customer_id = fields.Many2one(
@@ -365,7 +365,7 @@ class RestaurantOrder(models.Model):
     def _clear_table_availability_cache(self):
         tables = self.mapped('table_id')
         if tables:
-            tables.is_available_for_period.clear_cache()
+            self.env.registry.clear_cache()
 
     def action_confirm(self):
         self.write({'state': 'confirmed'})

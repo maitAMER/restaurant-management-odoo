@@ -1,7 +1,7 @@
 import re
 
 from odoo import api, fields, models
-from odoo.exceptions import UserError, ValidationError
+from odoo.exceptions import AccessError, UserError, ValidationError
 
 
 class RestaurantCustomer(models.Model):
@@ -54,6 +54,15 @@ class RestaurantCustomer(models.Model):
     order_ids = fields.One2many(
         'restaurant.order', 'restaurant_customer_id', string='Orders',
     )
+    reservation_ids = fields.One2many(
+        'restaurant.reservation', 'customer_id', string='Reservations',
+    )
+    payment_ids = fields.One2many(
+        'restaurant.payment', 'customer_id', string='Payments',
+    )
+    order_count = fields.Integer(compute='_compute_related_record_counts')
+    reservation_count = fields.Integer(compute='_compute_related_record_counts')
+    payment_count = fields.Integer(compute='_compute_related_record_counts')
     total_spent = fields.Monetary(
         string='Total Spent', compute='_compute_total_spent', store=True,
         currency_field='currency_id',
@@ -62,6 +71,57 @@ class RestaurantCustomer(models.Model):
         'res.currency', string='Currency',
         default=lambda self: self.env.company.currency_id,
     )
+
+    @api.depends('order_ids', 'reservation_ids', 'payment_ids')
+    def _compute_related_record_counts(self):
+        for customer in self:
+            customer.order_count = len(customer.order_ids)
+            customer.reservation_count = len(customer.reservation_ids)
+            customer.payment_count = len(customer.payment_ids)
+
+    def action_view_orders(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Orders',
+            'res_model': 'restaurant.order',
+            'view_mode': 'tree,form',
+            'domain': [('restaurant_customer_id', '=', self.id)],
+            'context': {'default_restaurant_customer_id': self.id},
+        }
+
+    def action_view_reservations(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Reservations',
+            'res_model': 'restaurant.reservation',
+            'view_mode': 'tree,form',
+            'domain': [('customer_id', '=', self.id)],
+            'context': {'default_customer_id': self.id},
+        }
+
+    def action_view_payments(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Payments',
+            'res_model': 'restaurant.payment',
+            'view_mode': 'tree,form',
+            'domain': [('customer_id', '=', self.id)],
+            'context': {'default_customer_id': self.id},
+        }
+
+    def action_view_loyalty_history(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Loyalty History',
+            'res_model': 'restaurant.customer.loyalty.transaction',
+            'view_mode': 'tree,form',
+            'domain': [('customer_id', '=', self.id)],
+            'context': {'default_customer_id': self.id},
+        }
 
     @api.depends('order_ids.total_amount', 'order_ids.state')
     def _compute_total_spent(self):

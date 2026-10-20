@@ -1,23 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <template id="portal_my_orders_template" name="My Orders &amp; Loyalty">
-        <t t-call="portal.portal_layout">
+        <t t-call="website.layout">
             <t t-set="breadcrumbs_searchbar" t-value="True"/>
 
             <div class="container mt32">
                 <h3>My Restaurant Orders</h3>
                 
                 <!-- عرض بيانات الولاء وإجمالي المصروفات للعميل -->
-                <t t-if="customer">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <div class="card p-3 bg-light">
-                                <h5 class="text-muted">Loyalty Points</h5>
-                                <h3><span t-field="customer.loyalty_points"/> Points</h3>
-                            </div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card p-3 bg-light">
+                            <h5 class="text-muted">Loyalty Points</h5>
+                            <h3><span t-esc="loyalty_points"/> Points</h3>
                         </div>
                     </div>
-                </t>
+                </div>
 
                 <t t-if="not orders">
                     <p class="alert alert-warning">You have no orders yet!</p>

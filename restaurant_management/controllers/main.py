@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from datetime import datetime
+from datetime import datetime, timedelta
 from odoo import http, fields
 from odoo.exceptions import ValidationError
 from odoo.http import request
@@ -51,10 +51,17 @@ class RestaurantWebsite(http.Controller):
         table = request.env['restaurant.table'].sudo().browse(int(table_id))
         if not table.exists():
             return {'status': 'error', 'message': 'Table not found'}
-        
-        is_available = True
-        if hasattr(table, 'is_available_for_period'):
-            is_available = table.is_available_for_period(reservation_time, int(duration_minutes))
+
+        try:
+            start = datetime.fromisoformat(reservation_time)
+            duration_minutes = int(duration_minutes)
+            if duration_minutes <= 0:
+                raise ValueError
+        except (TypeError, ValueError):
+            return {'status': 'error', 'message': 'Invalid reservation time or duration'}
+
+        end = start + timedelta(minutes=duration_minutes)
+        is_available = table.is_available_for_period(start, end)
         return {'available': is_available}
 
     # 4. مسار صفحة حجز الطاولات
@@ -83,7 +90,11 @@ class RestaurantWebsite(http.Controller):
         if not table.exists():
             return request.redirect('/restaurant/reserve?error=table_not_found')
         
-        if hasattr(table, 'is_available_for_period') and not table.is_available_for_period(reservation_time, duration_minutes):
+        if duration_minutes <= 0:
+            return request.redirect('/restaurant/reserve?error=invalid_time')
+
+        reservation_end = reservation_datetime + timedelta(minutes=duration_minutes)
+        if not table.is_available_for_period(reservation_datetime, reservation_end):
             return request.redirect('/restaurant/reserve?error=table_busy')
 
         customer = request.env['restaurant.customer'].sudo().search([('email', '=', customer_email)], limit=1)
@@ -98,10 +109,11 @@ class RestaurantWebsite(http.Controller):
                 'reservation_date': fields.Datetime.to_string(reservation_datetime),
                 'duration': duration_minutes / 60.0,
                 'table_id': table_id,
-                'restaurant_customer_id': customer.id,
+                'customer_id': customer.id,
             })
 
             order_vals = {
+                'customer_id': request.env.user.partner_id.id,
                 'restaurant_customer_id': customer.id,
                 'table_id': table_id,
                 'order_type': 'dine_in',
@@ -109,9 +121,6 @@ class RestaurantWebsite(http.Controller):
                 'date_order': fields.Datetime.to_string(reservation_datetime),
                 'notes': f"Table Reservation for {customer_name} (Table: {table.name})"
             }
-            if customer.user_id and customer.user_id.partner_id:
-                order_vals['customer_id'] = customer.user_id.partner_id.id
-
             request.env['restaurant.order'].sudo().create(order_vals)
 
         except ValidationError:
@@ -122,21 +131,38 @@ class RestaurantWebsite(http.Controller):
     # 6. مسار إرسال الأوردر السريع من المنيو أو صفحة تفاصيل الصنف (ينزل Draft Order)
     @http.route('/restaurant/order/submit', type='http', auth='public', methods=['POST'], website=True, csrf=True)
     def submit_website_order(self, menu_item_id, quantity=1, **kwargs):
-        partner = request.env.user.partner_id
-        
-        customer = request.env['restaurant.customer'].sudo().search([('email', '=', partner.email)], limit=1)
+        user = request.env.user
+        partner = user.partner_id
+        is_public_user = user._is_public()
+        customer_model = request.env['restaurant.customer'].sudo()
+        customer = customer_model.browse()
+
+        if is_public_user:
+            guest_cust_id = request.session.get('restaurant_guest_customer_id')
+            if guest_cust_id:
+                customer = customer_model.browse(guest_cust_id).exists()
+        else:
+            customer = customer_model.search([('user_id', '=', user.id)], limit=1)
+            email = (partner.email or '').strip().casefold()
+            if not customer and email:
+                customer = customer_model.search([('email_normalized', '=', email)], limit=1)
+
         if not customer:
-            customer = request.env['restaurant.customer'].sudo().create({
-                'name': partner.name if partner.name and partner.name != 'Public User' else "Website Guest",
-                'email': partner.email if partner.email else "guest@restaurant.com",
-                'user_id': request.env.user.id if not request.env.user._is_public() else False,
-            })
+            customer_vals = {
+                'name': partner.name if not is_public_user and partner.name else 'Website Guest',
+            }
+            if not is_public_user:
+                customer_vals['user_id'] = user.id
+                if partner.email:
+                    customer_vals['email'] = partner.email.strip()
+            customer = customer_model.create(customer_vals)
 
         menu_item = request.env['restaurant.menu.item'].sudo().browse(int(menu_item_id))
 
-        request.env['restaurant.order'].sudo().create({
-            'customer_id': partner.id,               # تمرير الـ partner الإلزامي للنموذج
-            'restaurant_customer_id': customer.id,   # تمرير الـ restaurant customer لنقاط الولاء
+        # تم ضبط customer_id بحيث لا يسبب مشكلة Access Denied مع الـ Public User
+        order = request.env['restaurant.order'].sudo().create({
+            'customer_id': partner.id if not is_public_user else False,
+            'restaurant_customer_id': customer.id,
             'order_type': 'takeaway',
             'state': 'draft',
             'line_ids': [(0, 0, {
@@ -145,6 +171,11 @@ class RestaurantWebsite(http.Controller):
                 'unit_price': menu_item.price if menu_item else 0.0,
             })]
         })
+
+        if is_public_user:
+            guest_order_ids = request.session.get('restaurant_guest_order_ids', [])
+            request.session['restaurant_guest_order_ids'] = list(set(guest_order_ids + [order.id]))
+            request.session['restaurant_guest_customer_id'] = customer.id
 
         return request.redirect('/my/orders')
 
@@ -186,24 +217,34 @@ class RestaurantWebsite(http.Controller):
         return request.render('restaurant_management.catering_success_template', {})
 
     # 8. مسار بوابة العميل لعرض أوردراته ونقاط الولاء
-    @http.route(['/my/orders', '/my/orders/page/<int:page>'], type='http', auth="user", website=True)
+    @http.route(['/my/orders', '/my/orders/page/<int:page>'], type='http', auth="public", website=True)
     def portal_my_orders(self, **kwargs):
-        partner = request.env.user.partner_id
-        
-        customer = request.env['restaurant.customer'].sudo().search([
-            '|',
-            ('email', '=', partner.email),
-            ('user_id', '=', request.env.user.id)
-        ], limit=1)
-        
-        orders = []
-        if customer:
-            orders = request.env['restaurant.order'].sudo().search([
+        customer_model = request.env['restaurant.customer'].sudo()
+        order_model = request.env['restaurant.order'].sudo()
+
+        if request.env.user._is_public():
+            customer = customer_model.browse(
+                request.session.get('restaurant_guest_customer_id')
+            ).exists()
+            guest_order_ids = request.session.get('restaurant_guest_order_ids', [])
+            orders = order_model.search([
+                ('id', 'in', guest_order_ids),
+                ('restaurant_customer_id', '=', customer.id),
+            ]) if customer else order_model.browse()
+        else:
+            partner = request.env.user.partner_id
+            email = (partner.email or '').strip().casefold()
+            customer = customer_model.search([
+                '|',
+                ('user_id', '=', request.env.user.id),
+                ('email_normalized', '=', email),
+            ], limit=1)
+            orders = order_model.search([
                 ('restaurant_customer_id', '=', customer.id)
-            ])
+            ]) if customer else order_model.browse()
 
         return request.render('restaurant_management.portal_my_orders_template', {
             'orders': orders,
-            'customer': customer,
+            'loyalty_points': customer.sudo().loyalty_points if customer else 0,
             'page_name': 'order',
         })

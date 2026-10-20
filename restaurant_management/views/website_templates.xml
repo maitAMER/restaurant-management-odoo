@@ -39,7 +39,18 @@
         </xpath>
     </template>
 
-    <!-- 2. قالب صفحة المنيو العامة مع صور متنوعة بالبرمجة -->
+    <!-- 2. إضافة رابط My Orders إلى شريط التنقل العلوي (Navbar) -->
+    <template id="add_my_orders_to_header" inherit_id="website.navbar_nav" name="Add My Orders Link">
+        <xpath expr="//ul[@id='top_menu']" position="inside">
+            <li class="nav-item">
+                <a href="/my/orders" class="nav-link font-weight-bold">
+                    <i class="fa fa-shopping-bag mr-1"></i> My Orders
+                </a>
+            </li>
+        </xpath>
+    </template>
+
+    <!-- 3. قالب صفحة المنيو العامة لأنواع البيتزا -->
     <template id="menu_catalog_template" name="Restaurant Menu">
         <t t-call="website.layout">
             <div id="wrap" class="container py-5">
@@ -51,7 +62,7 @@
                             <div class="card h-100 shadow-sm border-0">
                                 <!-- تم تحديث الشرط ليتأكد أن الحقل يحتوي على بيانات فعلية وليست فارغة -->
                                 <t t-if="item.image_1920 and len(str(item.image_1920)) > 50">
-                                    <img t-att-src="website.image_url(item, 'image_1920')" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Item Image"/>
+                                    <img t-att-src="website.image_url(item, 'image_1920')" class="card-img-top" style="height: 220px; object-fit: cover;" t-att-alt="item.name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&amp;fit=crop&amp;w=600&amp;q=80';"/>
                                 </t>
                                 <t t-else="">
                                     <!-- روابط صور بيتزا متنوعة تتبدل أوتوماتيكياً بناءً على ID الصنف -->
@@ -62,12 +73,17 @@
                                         'https://images.unsplash.com/photo-1595750543058-297c41c7b399?auto=format&amp;fit=crop&amp;w=600&amp;q=80',
                                         'https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&amp;fit=crop&amp;w=600&amp;q=80'
                                     ]"/>
-                                    <img t-att-src="pizza_images[item.id % len(pizza_images)]" class="card-img-top" style="height: 220px; object-fit: cover;" alt="Pizza Image"/>
+                                    <img t-att-src="pizza_images[item.id % len(pizza_images)]" class="card-img-top" style="height: 220px; object-fit: cover;" t-att-alt="item.name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&amp;fit=crop&amp;w=600&amp;q=80';"/>
                                 </t>
                                 
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title font-weight-bold" t-field="item.name"/>
-                                    <p class="card-text text-muted small" t-field="item.ingredients"/>
+                                    <p class="card-text text-muted small">
+                                        <span t-if="item.ingredients" t-field="item.ingredients"/>
+                                        <span t-elif="item.description" t-field="item.description"/>
+                                        <span t-elif="item.pizza_type" t-esc="item.pizza_type.replace('_', ' ').title() + ' pizza, prepared fresh to order.'"/>
+                                        <span t-else="">Freshly prepared with carefully selected ingredients.</span>
+                                    </p>
                                     <div class="mt-auto">
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <span class="font-weight-bold text-success h5 mb-0"><span t-field="item.price"/> EGP</span>
@@ -97,17 +113,17 @@
         </t>
     </template>
 
-    <!-- 3. قالب تفاصيل الصنف الفردي -->
-    <template id="menu_item_detail_template" name="Menu Item Detail">
+    <!-- 4. قالب تفاصيل صنف البيتزا الفردي -->
+    <template id="menu_item_detail_template" name="Pizza Item Detail">
         <t t-call="website.layout">
             <div id="wrap" class="container py-5">
                 <div class="row align-items-center">
                     <div class="col-md-6 mb-4 mb-md-0">
                         <t t-if="item.image_1920 and len(str(item.image_1920)) > 50">
-                            <img t-att-src="website.image_url(item, 'image_1920')" class="img-fluid rounded shadow w-100" style="max-height: 400px; object-fit: cover;" alt="Item Details"/>
+                            <img t-att-src="website.image_url(item, 'image_1920')" class="img-fluid rounded shadow w-100" style="max-height: 400px; object-fit: cover;" t-att-alt="item.name" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&amp;fit=crop&amp;w=800&amp;q=80';"/>
                         </t>
                         <t t-else="">
-                            <img t-att-src="'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&amp;fit=crop&amp;w=800&amp;q=80'" class="img-fluid rounded shadow w-100" alt="Default Details"/>
+                            <img t-att-src="'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&amp;fit=crop&amp;w=800&amp;q=80'" class="img-fluid rounded shadow w-100" alt="Default Pizza Details"/>
                         </t>
                     </div>
                     <div class="col-md-6">
@@ -116,7 +132,12 @@
                         <h3 class="text-success mb-4"><span t-field="item.price"/> EGP</h3>
                         
                         <hr/>
-                        <p><strong>Ingredients:</strong> <span t-field="item.ingredients"/></p>
+                        <p><strong>Ingredients:</strong>
+                            <span t-if="item.ingredients" t-field="item.ingredients"/>
+                            <span t-elif="item.description" t-field="item.description"/>
+                            <span t-elif="item.pizza_type" t-esc="item.pizza_type.replace('_', ' ').title() + ' pizza, prepared fresh to order.'"/>
+                            <span t-else="">Freshly prepared with carefully selected ingredients.</span>
+                        </p>
                         <p><strong>Allergens:</strong> <span t-field="item.allergens" class="text-danger"/></p>
                         <p><strong>Preparation Time:</strong> <span t-esc="item.prep_time_display"/></p>
                         
@@ -138,6 +159,19 @@
                             </div>
                         </form>
                     </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- 5. قالب نجاح إرسال الأوردر -->
+    <template id="website_order_success_template" name="Order Submitted">
+        <t t-call="website.layout">
+            <div id="wrap" class="container py-5">
+                <div class="alert alert-success" role="status">
+                    <h1 class="h3">Your order has been received</h1>
+                    <p class="mb-3">Your order is awaiting restaurant confirmation.</p>
+                    <a href="/menu" class="btn btn-primary">Back to Menu</a>
                 </div>
             </div>
         </t>

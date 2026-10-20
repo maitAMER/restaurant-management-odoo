@@ -37,7 +37,7 @@ class RestaurantPayment(models.Model):
     customer_id = fields.Many2one(
         comodel_name="restaurant.customer",
         string="Customer",
-        related="order_id.customer_id",
+        related="order_id.restaurant_customer_id",
         store=True,
         readonly=True,
     )

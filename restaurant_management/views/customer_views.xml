@@ -81,6 +81,20 @@
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_orders" type="object" class="oe_stat_button" icon="fa-shopping-cart">
+                            <field name="order_count" widget="statinfo" string="Orders"/>
+                        </button>
+                        <button name="action_view_reservations" type="object" class="oe_stat_button" icon="fa-calendar">
+                            <field name="reservation_count" widget="statinfo" string="Reservations"/>
+                        </button>
+                        <button name="action_view_payments" type="object" class="oe_stat_button" icon="fa-credit-card">
+                            <field name="payment_count" widget="statinfo" string="Payments"/>
+                        </button>
+                        <button name="action_view_loyalty_history" type="object" class="oe_stat_button" icon="fa-gift" groups="restaurant_management.group_shift_manager" invisible="customer_type != 'individual'">
+                            <field name="loyalty_points" widget="statinfo" string="Loyalty Points"/>
+                        </button>
+                    </div>
                     <field name="currency_id" invisible="1"/>
                     <field name="image_1920" widget="image" class="oe_avatar"/>
                     <div class="oe_title">
@@ -172,6 +186,40 @@
         <field name="res_model">restaurant.customer</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="search_view_id" ref="view_restaurant_customer_search"/>
+    </record>
+
+    <record id="view_restaurant_customer_loyalty_transaction_tree" model="ir.ui.view">
+        <field name="name">restaurant.customer.loyalty.transaction.tree</field>
+        <field name="model">restaurant.customer.loyalty.transaction</field>
+        <field name="arch" type="xml">
+            <tree string="Loyalty History" create="0">
+                <field name="date"/>
+                <field name="customer_id"/>
+                <field name="source_order_id" optional="show"/>
+                <field name="reason"/>
+                <field name="points_delta"/>
+                <field name="balance_after"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_restaurant_customer_loyalty_transaction_form" model="ir.ui.view">
+        <field name="name">restaurant.customer.loyalty.transaction.form</field>
+        <field name="model">restaurant.customer.loyalty.transaction</field>
+        <field name="arch" type="xml">
+            <form string="Loyalty Transaction" create="0" edit="0" delete="0">
+                <sheet>
+                    <group>
+                        <field name="customer_id"/>
+                        <field name="source_order_id"/>
+                        <field name="date"/>
+                        <field name="reason"/>
+                        <field name="points_delta"/>
+                        <field name="balance_after"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
     </record>
 
     <record id="view_restaurant_customer_loyalty_wizard_form" model="ir.ui.view">

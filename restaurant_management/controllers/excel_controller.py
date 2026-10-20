@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-"""T083 - Export one order receipt to Excel."""
 import io
 
 import pytz

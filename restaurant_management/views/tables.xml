@@ -69,6 +69,11 @@
             <form string="Restaurant Table">
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <button name="action_view_active_orders" type="object"
+                                class="oe_stat_button" icon="fa-cutlery">
+                            <field name="active_order_count" widget="statinfo"
+                                   string="Active Orders"/>
+                        </button>
                         <button class="oe_stat_button" icon="fa-calendar" disabled="1">
                             <field name="reservation_count" widget="statinfo"
                                    string="Reservations"/>

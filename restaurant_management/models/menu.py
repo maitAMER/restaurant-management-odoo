@@ -29,6 +29,9 @@ class RestaurantMenuItem(models.Model):
     order_line_ids = fields.One2many(
         'restaurant.order.line', 'menu_item_id', string='Order Lines',
     )
+    total_sold_qty = fields.Float(
+        string='Total Sold', compute='_compute_total_sold_qty',
+    )
     menu_section = fields.Selection(
         [
             ('pizza', 'Pizza'),
@@ -109,6 +112,32 @@ class RestaurantMenuItem(models.Model):
     daily_special = fields.Boolean(string='Daily Special', default=False, tracking=True)
     description = fields.Text(string='Description')
     allergens = fields.Text(string='Allergen Warnings', help="e.g., Contains dairy/cheese, gluten")
+
+    @api.depends('order_line_ids.quantity', 'order_line_ids.order_id.state')
+    def _compute_total_sold_qty(self):
+        for item in self:
+            item.total_sold_qty = sum(
+                line.quantity
+                for line in item.order_line_ids
+                if line.order_id.state == 'completed'
+            )
+
+    def action_view_sales(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Completed Sales',
+            'res_model': 'restaurant.order.line',
+            'view_mode': 'tree',
+            'views': [(self.env.ref(
+                'restaurant_management.view_restaurant_order_line_sales_tree'
+            ).id, 'tree')],
+            'domain': [
+                ('menu_item_id', '=', self.id),
+                ('order_id.state', '=', 'completed'),
+            ],
+            'context': {'default_menu_item_id': self.id},
+        }
 
     def init(self):
         # Merge values from the former separate Dessert and Appetizer sections.

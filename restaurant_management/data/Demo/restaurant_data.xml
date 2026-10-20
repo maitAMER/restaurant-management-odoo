@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Restaurant Management demo data. Loaded from the manifest's demo section.
+-->
+<odoo noupdate="1">
+
+    <!-- ============================================================ -->
+    <!-- 1. MENU CATEGORIES (3)                                        -->
+    <!-- ============================================================ -->
+    <record id="cat_starters" model="restaurant.menu.category">
+        <field name="name">Starters</field>
+    </record>
+    <record id="cat_mains" model="restaurant.menu.category">
+        <field name="name">Mains</field>
+    </record>
+    <record id="cat_desserts_drinks" model="restaurant.menu.category">
+        <field name="name">Desserts &amp; Drinks</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 2. MENU ITEMS (8)                                             -->
+    <!-- ============================================================ -->
+    <record id="item_bruschetta" model="restaurant.menu.item">
+        <field name="name">Bruschetta</field>
+        <field name="category_id" ref="cat_starters"/>
+        <field name="menu_section">dessert_appetizer</field>
+        <field name="price">65</field>
+        <field name="cost">22</field>
+        <field name="allergens">Gluten</field>
+        <field name="ingredients">Toasted bread, tomato, basil, olive oil</field>
+        <field name="prep_time_minutes">8</field>
+    </record>
+    <record id="item_garlic_bread" model="restaurant.menu.item">
+        <field name="name">Garlic Bread</field>
+        <field name="category_id" ref="cat_starters"/>
+        <field name="menu_section">dessert_appetizer</field>
+        <field name="price">45</field>
+        <field name="cost">14</field>
+        <field name="allergens">Gluten, Dairy</field>
+        <field name="ingredients">Baguette, garlic butter, parsley</field>
+        <field name="prep_time_minutes">6</field>
+    </record>
+    <record id="item_margherita" model="restaurant.menu.item">
+        <field name="name">Margherita Pizza</field>
+        <field name="category_id" ref="cat_mains"/>
+        <field name="menu_section">pizza</field>
+        <field name="pizza_type">margherita</field>
+        <field name="size">large</field>
+        <field name="price">120</field>
+        <field name="cost">38</field>
+        <field name="allergens">Gluten, Dairy</field>
+        <field name="ingredients">Dough, tomato sauce, fresh mozzarella, basil</field>
+        <field name="prep_time_minutes">15</field>
+        <field name="daily_special">True</field>
+    </record>
+    <record id="item_pepperoni" model="restaurant.menu.item">
+        <field name="name">Pepperoni Pizza</field>
+        <field name="category_id" ref="cat_mains"/>
+        <field name="menu_section">pizza</field>
+        <field name="pizza_type">pepperoni</field>
+        <field name="size">large</field>
+        <field name="price">150</field>
+        <field name="cost">52</field>
+        <field name="allergens">Gluten, Dairy</field>
+        <field name="ingredients">Dough, tomato sauce, mozzarella, pepperoni</field>
+        <field name="prep_time_minutes">18</field>
+    </record>
+    <record id="item_alfredo" model="restaurant.menu.item">
+        <field name="name">Fettuccine Alfredo</field>
+        <field name="category_id" ref="cat_mains"/>
+        <field name="menu_section">dessert_appetizer</field>
+        <field name="price">135</field>
+        <field name="cost">44</field>
+        <field name="allergens">Gluten, Dairy, Eggs</field>
+        <field name="ingredients">Fettuccine, cream, parmesan, butter</field>
+        <field name="prep_time_minutes">20</field>
+    </record>
+    <record id="item_tiramisu" model="restaurant.menu.item">
+        <field name="name">Tiramisu</field>
+        <field name="category_id" ref="cat_desserts_drinks"/>
+        <field name="menu_section">dessert_appetizer</field>
+        <field name="price">80</field>
+        <field name="cost">27</field>
+        <field name="allergens">Gluten, Dairy, Eggs</field>
+        <field name="ingredients">Mascarpone, ladyfingers, espresso, cocoa</field>
+        <field name="prep_time_minutes">5</field>
+        <!-- unavailable item -->
+        <field name="is_available">False</field>
+    </record>
+    <record id="item_lemonade" model="restaurant.menu.item">
+        <field name="name">Fresh Lemonade</field>
+        <field name="category_id" ref="cat_desserts_drinks"/>
+        <field name="menu_section">drink</field>
+        <field name="price">35</field>
+        <field name="cost">8</field>
+        <field name="allergens"></field>
+        <field name="ingredients">Lemon, mint, sugar, water</field>
+        <field name="prep_time_minutes">3</field>
+    </record>
+    <record id="item_espresso" model="restaurant.menu.item">
+        <field name="name">Espresso</field>
+        <field name="category_id" ref="cat_desserts_drinks"/>
+        <field name="menu_section">drink</field>
+        <field name="price">30</field>
+        <field name="cost">7</field>
+        <field name="allergens"></field>
+        <field name="ingredients">Espresso coffee</field>
+        <field name="prep_time_minutes">2</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 3. TABLES (4) - different capacities / locations              -->
+    <!-- ============================================================ -->
+    <record id="table_01" model="restaurant.table">
+        <field name="name">T-01</field>
+        <field name="capacity">2</field>
+        <field name="location">indoor</field>
+    </record>
+    <record id="table_02" model="restaurant.table">
+        <field name="name">T-02</field>
+        <field name="capacity">4</field>
+        <field name="location">indoor</field>
+    </record>
+    <record id="table_03" model="restaurant.table">
+        <field name="name">T-03</field>
+        <field name="capacity">6</field>
+        <field name="location">terrace</field>
+    </record>
+    <record id="table_04" model="restaurant.table">
+        <field name="name">T-04</field>
+        <field name="capacity">8</field>
+        <field name="location">private</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 4. DEMO USERS (waiter1, driver1, manager, customer1)          -->
+    <!-- ============================================================ -->
+    <record id="user_waiter1" model="res.users">
+        <field name="name">Waiter One</field>
+        <field name="login">waiter1</field>
+        <field name="password">waiter1</field>
+        <field name="email">waiter1@example.com</field>
+        <field name="groups_id" eval="[(6, 0, [
+            ref('base.group_user'),
+            ref('restaurant_management.group_restaurant_user')])]"/>
+    </record>
+    <record id="user_driver1" model="res.users">
+        <field name="name">Driver One</field>
+        <field name="login">driver1</field>
+        <field name="password">driver1</field>
+        <field name="email">driver1@example.com</field>
+        <field name="groups_id" eval="[(6, 0, [
+            ref('base.group_user'),
+            ref('restaurant_management.group_restaurant_driver')])]"/>
+    </record>
+    <record id="user_cashier1" model="res.users">
+        <field name="name">Cashier One</field>
+        <field name="login">cashier1</field>
+        <field name="password">cashier1</field>
+        <field name="email">cashier1@example.com</field>
+        <field name="groups_id" eval="[(6, 0, [
+            ref('base.group_user'),
+            ref('restaurant_management.group_restaurant_cashier')])]"/>
+    </record>
+    <record id="user_manager" model="res.users">
+        <field name="name">Restaurant Manager</field>
+        <field name="login">manager</field>
+        <field name="password">manager</field>
+        <field name="email">manager@example.com</field>
+        <field name="groups_id" eval="[(6, 0, [
+            ref('base.group_user'),
+            ref('restaurant_management.group_shift_manager')])]"/>
+    </record>
+    <record id="user_customer1" model="res.users">
+        <field name="name">Customer One</field>
+        <field name="login">customer1</field>
+        <field name="password">customer1</field>
+        <field name="email">customer1@example.com</field>
+        <!-- portal users must NOT also be internal users -->
+        <field name="groups_id" eval="[(6, 0, [ref('base.group_portal')])]"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 5. CUSTOMERS (5)                                              -->
+    <!-- ============================================================ -->
+    <record id="customer_1" model="restaurant.customer">
+        <field name="name">Customer One</field>
+        <field name="email">customer1@example.com</field>
+        <field name="phone">+201000000001</field>
+        <field name="date_of_birth">1992-03-14</field>
+        <!-- the portal user -->
+        <field name="user_id" ref="user_customer1"/>
+    </record>
+    <record id="customer_2" model="restaurant.customer">
+        <field name="name">Mona Hassan</field>
+        <field name="email">mona.hassan@example.com</field>
+        <field name="phone">+201000000002</field>
+        <field name="date_of_birth">1988-07-22</field>
+        <!-- internal notes -->
+        <field name="internal_notes">VIP guest. Allergic to nuts. Prefers the terrace.</field>
+    </record>
+    <record id="customer_3" model="restaurant.customer">
+        <field name="name">Karim Adel</field>
+        <field name="email">karim.adel@example.com</field>
+        <field name="phone">+201000000003</field>
+        <field name="date_of_birth">1995-11-02</field>
+        <!-- favorite items -->
+        <field name="favorite_items" eval="[(6, 0, [
+            ref('item_margherita'), ref('item_lemonade')])]"/>
+    </record>
+    <record id="customer_4" model="restaurant.customer">
+        <field name="name">Sara Mostafa</field>
+        <field name="email">sara.mostafa@example.com</field>
+        <field name="phone">+201000000004</field>
+        <field name="address">12 Nile Corniche, Maadi, Cairo</field>
+        <field name="date_of_birth">2000-01-30</field>
+    </record>
+    <record id="customer_5" model="restaurant.customer">
+        <field name="name">Omar Farouk</field>
+        <field name="email">omar.farouk@example.com</field>
+        <field name="phone">+201000000005</field>
+        <field name="address">5 Tahrir Square, Downtown, Cairo</field>
+        <field name="date_of_birth">1985-09-09</field>
+    </record>
+
+    <record id="partner_1" model="res.partner">
+        <field name="name">Customer One</field>
+        <field name="email">customer1@example.com</field>
+        <field name="phone">+201000000001</field>
+    </record>
+    <record id="partner_2" model="res.partner">
+        <field name="name">Mona Hassan</field>
+        <field name="email">mona.hassan@example.com</field>
+        <field name="phone">+201000000002</field>
+    </record>
+    <record id="partner_3" model="res.partner">
+        <field name="name">Karim Adel</field>
+        <field name="email">karim.adel@example.com</field>
+        <field name="phone">+201000000003</field>
+    </record>
+    <record id="partner_4" model="res.partner">
+        <field name="name">Sara Mostafa</field>
+        <field name="email">sara.mostafa@example.com</field>
+        <field name="phone">+201000000004</field>
+    </record>
+    <record id="partner_5" model="res.partner">
+        <field name="name">Omar Farouk</field>
+        <field name="email">omar.farouk@example.com</field>
+        <field name="phone">+201000000005</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 6. RESERVATIONS (5)                                          -->
+    <!-- ============================================================ -->
+    <record id="reservation_1" model="restaurant.reservation">
+        <field name="customer_id" ref="customer_1"/>
+        <field name="table_id" ref="table_01"/>
+        <field name="reservation_date" eval="(DateTime.today() - timedelta(days=5)).strftime('%Y-%m-%d 18:00:00')"/>
+        <field name="guests">2</field>
+        <field name="state">seated</field>
+    </record>
+    <record id="reservation_2" model="restaurant.reservation">
+        <field name="customer_id" ref="customer_2"/>
+        <field name="table_id" ref="table_02"/>
+        <field name="reservation_date" eval="(DateTime.today() + timedelta(days=1)).strftime('%Y-%m-%d 19:00:00')"/>
+        <field name="guests">4</field>
+        <field name="state">confirmed</field>
+    </record>
+    <record id="reservation_3" model="restaurant.reservation">
+        <field name="customer_id" ref="customer_3"/>
+        <field name="table_id" ref="table_03"/>
+        <field name="reservation_date" eval="(DateTime.today() + timedelta(days=2)).strftime('%Y-%m-%d 17:30:00')"/>
+        <field name="guests">5</field>
+        <field name="state">draft</field>
+    </record>
+    <record id="reservation_4" model="restaurant.reservation">
+        <field name="customer_id" ref="customer_4"/>
+        <field name="table_id" ref="table_04"/>
+        <field name="reservation_date" eval="(DateTime.today() - timedelta(days=3)).strftime('%Y-%m-%d 20:00:00')"/>
+        <field name="guests">6</field>
+        <field name="state">no_show</field>
+    </record>
+    <record id="reservation_5" model="restaurant.reservation">
+        <field name="customer_id" ref="customer_5"/>
+        <field name="table_id" ref="table_01"/>
+        <field name="reservation_date" eval="(DateTime.today() - timedelta(days=2)).strftime('%Y-%m-%d 16:00:00')"/>
+        <field name="guests">2</field>
+        <field name="state">cancelled</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 7. CRM LEADS                                                  -->
+    <!-- ============================================================ -->
+    <record id="lead_catering_inquiry" model="crm.lead">
+        <field name="name">Corporate catering inquiry</field>
+        <field name="type">lead</field>
+        <field name="contact_name">Omar Farouk</field>
+        <field name="email_from">omar.farouk@example.com</field>
+        <field name="phone">+201000000005</field>
+        <field name="lead_source">website</field>
+        <field name="customer_id" ref="customer_5"/>
+        <field name="menu_category_id" ref="cat_mains"/>
+    </record>
+    <record id="lead_event_booking" model="crm.lead">
+        <field name="name">Private dining event</field>
+        <field name="type">opportunity</field>
+        <field name="contact_name">Mona Hassan</field>
+        <field name="email_from">mona.hassan@example.com</field>
+        <field name="phone">+201000000002</field>
+        <field name="lead_source">manual</field>
+        <field name="customer_id" ref="customer_2"/>
+        <field name="menu_category_id" ref="cat_desserts_drinks"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 8. ORDERS (8) - one per state                                 -->
+    <!-- ============================================================ -->
+    <!-- draft / takeaway -->
+    <record id="order_1" model="restaurant.order">
+        <field name="customer_id" ref="partner_1"/>
+        <field name="restaurant_customer_id" ref="customer_1"/>
+        <field name="order_type">takeaway</field>
+        <field name="state">draft</field>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(hours=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_pepperoni'), 'unit_price': 150, 'quantity': 1})]"/>
+    </record>
+    <!-- confirmed / dine-in with a table -->
+    <record id="order_2" model="restaurant.order">
+        <field name="customer_id" ref="partner_2"/>
+        <field name="restaurant_customer_id" ref="customer_2"/>
+        <field name="order_type">dine_in</field>
+        <field name="table_id" ref="table_02"/>
+        <field name="state">confirmed</field>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(minutes=40)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_margherita'), 'unit_price': 120, 'quantity': 2}), (0, 0, {'menu_item_id': ref('item_lemonade'), 'unit_price': 35, 'quantity': 2})]"/>
+    </record>
+    <!-- preparing / dine-in -->
+    <record id="order_3" model="restaurant.order">
+        <field name="customer_id" ref="partner_3"/>
+        <field name="restaurant_customer_id" ref="customer_3"/>
+        <field name="order_type">dine_in</field>
+        <field name="table_id" ref="table_03"/>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(minutes=25)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_alfredo'), 'unit_price': 135, 'quantity': 1}), (0, 0, {'menu_item_id': ref('item_bruschetta'), 'unit_price': 65, 'quantity': 1})]"/>
+    </record>
+    <!-- ready / delivery with a driver -->
+    <record id="order_4" model="restaurant.order">
+        <field name="customer_id" ref="partner_4"/>
+        <field name="restaurant_customer_id" ref="customer_4"/>
+        <field name="order_type">delivery</field>
+        <field name="driver_id" ref="user_driver1"/>
+        <field name="delivery_address">12 Nile Corniche, Maadi, Cairo</field>
+        <field name="delivery_fee">30</field>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(minutes=15)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_pepperoni'), 'unit_price': 150, 'quantity': 2})]"/>
+    </record>
+    <!-- completed / delivery with an overdue pending payment (10 days old) -->
+    <record id="order_5" model="restaurant.order">
+        <field name="customer_id" ref="partner_5"/>
+        <field name="restaurant_customer_id" ref="customer_5"/>
+        <field name="order_type">delivery</field>
+        <field name="driver_id" ref="user_driver1"/>
+        <field name="delivery_address">5 Tahrir Square, Downtown, Cairo</field>
+        <field name="delivery_fee">30</field>
+        <field name="payment_status">overdue</field>
+        <field name="next_payment_date" eval="(DateTime.today() - timedelta(days=10)).strftime('%Y-%m-%d')"/>
+        <field name="days_overdue">10</field>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(days=10)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_margherita'), 'unit_price': 120, 'quantity': 3})]"/>
+    </record>
+    <!-- completed / dine-in, paid with TWO split payments -->
+    <record id="order_6" model="restaurant.order">
+        <field name="customer_id" ref="partner_2"/>
+        <field name="restaurant_customer_id" ref="customer_2"/>
+        <field name="order_type">dine_in</field>
+        <field name="table_id" ref="table_04"/>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(days=2)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_alfredo'), 'unit_price': 135, 'quantity': 2}), (0, 0, {'menu_item_id': ref('item_garlic_bread'), 'unit_price': 45, 'quantity': 2})]"/>
+    </record>
+    <!-- cancelled (its payment gets refunded) -->
+    <record id="order_7" model="restaurant.order">
+        <field name="customer_id" ref="partner_3"/>
+        <field name="restaurant_customer_id" ref="customer_3"/>
+        <field name="order_type">takeaway</field>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(days=3)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_margherita'), 'unit_price': 120, 'quantity': 1})]"/>
+    </record>
+    <!-- no_show -->
+    <record id="order_8" model="restaurant.order">
+        <field name="customer_id" ref="partner_4"/>
+        <field name="restaurant_customer_id" ref="customer_4"/>
+        <field name="order_type">dine_in</field>
+        <field name="table_id" ref="table_01"/>
+        <field name="reservation_time" eval="(DateTime.today() - timedelta(days=1)).strftime('%Y-%m-%d %H:%M:%S')"/>
+        <field name="line_ids" eval="[(0, 0, {'menu_item_id': ref('item_espresso'), 'unit_price': 30, 'quantity': 2})]"/>
+    </record>
+
+    <!-- Add lines while the orders are draft, then apply their final states. -->
+    <record id="order_3" model="restaurant.order">
+        <field name="state">preparing</field>
+    </record>
+    <record id="order_4" model="restaurant.order">
+        <field name="state">ready</field>
+    </record>
+    <record id="order_5" model="restaurant.order">
+        <field name="state">completed</field>
+    </record>
+    <record id="order_6" model="restaurant.order">
+        <field name="state">completed</field>
+    </record>
+    <record id="order_7" model="restaurant.order">
+        <field name="state">cancelled</field>
+    </record>
+    <record id="order_8" model="restaurant.order">
+        <field name="state">no_show</field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 9. PAYMENTS (5)                                               -->
+    <!-- ============================================================ -->
+    <!-- order_3: paid by card -->
+    <record id="payment_1" model="restaurant.payment">
+        <field name="order_id" ref="order_3"/>
+        <field name="tip_amount">15</field>
+        <field name="method">card</field>
+        <field name="state">paid</field>
+    </record>
+    <!-- order_4: paid cash -->
+    <record id="payment_2" model="restaurant.payment">
+        <field name="order_id" ref="order_4"/>
+        <field name="tip_amount">20</field>
+        <field name="method">cash</field>
+        <field name="state">paid</field>
+    </record>
+    <!-- order_5: pending payment keeps the overdue account visible -->
+    <record id="payment_3" model="restaurant.payment">
+        <field name="order_id" ref="order_5"/>
+        <field name="tip_amount">0</field>
+        <field name="method">wallet</field>
+        <field name="state">pending</field>
+    </record>
+    <!-- order_6: balanced split payment (including tip) -->
+    <record id="payment_4" model="restaurant.payment">
+        <field name="order_id" ref="order_6"/>
+        <field name="tip_amount">10</field>
+        <field name="payment_type">split</field>
+        <field name="split_line_ids" eval="[(0, 0, {'method': 'cash', 'amount': 250}), (0, 0, {'method': 'card', 'amount': 170.4})]"/>
+        <field name="state">paid</field>
+    </record>
+    <!-- order_7 (cancelled): REFUNDED -->
+    <record id="payment_6" model="restaurant.payment">
+        <field name="order_id" ref="order_7"/>
+        <field name="tip_amount">0</field>
+        <field name="method">card</field>
+        <field name="state">refunded</field>
+        <field name="refunded_by" ref="user_manager"/>
+        <field name="refunded_at" eval="(DateTime.today() - timedelta(days=3)).strftime('%Y-%m-%d %H:%M:%S')"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- 10. EQUIPMENT MAINTENANCE TICKETS (3)                        -->
+    <!-- ============================================================ -->
+    <record id="equipment_oven" model="restaurant.equipment">
+        <field name="name">Pizza Oven</field>
+        <field name="category">kitchen</field>
+        <field name="equipment_type">oven</field>
+        <field name="serial_number">OVEN-1001</field>
+        <field name="location">Main kitchen</field>
+    </record>
+    <record id="equipment_fridge" model="restaurant.equipment">
+        <field name="name">Walk-in Fridge</field>
+        <field name="category">refrigeration</field>
+        <field name="equipment_type">fridge</field>
+        <field name="serial_number">FRIDGE-1001</field>
+        <field name="location">Storage room</field>
+    </record>
+    <record id="equipment_coffee_machine" model="restaurant.equipment">
+        <field name="name">Espresso Machine</field>
+        <field name="category">kitchen</field>
+        <field name="equipment_type">coffee_machine</field>
+        <field name="serial_number">COFFEE-1001</field>
+        <field name="location">Front counter</field>
+    </record>
+
+    <record id="ticket_1" model="restaurant.equipment.maintenance">
+        <field name="name">Oven inspection</field>
+        <field name="equipment_id" ref="equipment_oven"/>
+        <field name="description">Pizza oven not heating evenly</field>
+        <field name="priority">3</field>
+        <field name="urgency">3</field>
+        <field name="state">submitted</field>
+        <field name="request_date" eval="(DateTime.today() - timedelta(days=1)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="ticket_2" model="restaurant.equipment.maintenance">
+        <field name="name">Fridge seal repair</field>
+        <field name="equipment_id" ref="equipment_fridge"/>
+        <field name="description">Walk-in fridge door seal worn</field>
+        <field name="priority">1</field>
+        <field name="urgency">1</field>
+        <field name="state">in_progress</field>
+        <field name="assigned_to" ref="user_manager"/>
+        <field name="request_date" eval="(DateTime.today() - timedelta(days=2)).strftime('%Y-%m-%d')"/>
+        <field name="scheduled_date" eval="(DateTime.today() + timedelta(days=1)).strftime('%Y-%m-%d')"/>
+    </record>
+    <record id="ticket_3" model="restaurant.equipment.maintenance">
+        <field name="name">Coffee machine descaling</field>
+        <field name="equipment_id" ref="equipment_coffee_machine"/>
+        <field name="description">Espresso machine descaling</field>
+        <field name="priority">0</field>
+        <field name="urgency">0</field>
+        <field name="state">done</field>
+        <field name="assigned_to" ref="user_manager"/>
+        <field name="request_date" eval="(DateTime.today() - timedelta(days=5)).strftime('%Y-%m-%d')"/>
+        <field name="completed_date" eval="(DateTime.today() - timedelta(days=4)).strftime('%Y-%m-%d')"/>
+        <field name="actual_cost">350</field>
+    </record>
+
+</odoo>

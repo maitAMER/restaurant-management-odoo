@@ -124,3 +124,20 @@ Odoo_17/
 The n8n workflow JSON export used for the Telegram bot integration is located in n8n_workflows/restaurant_bot_workflow.json.
 
 Project Team:
+
+- Mai Tamer
+- Mohamed Ibrahim
+- Hager Ahmed
+- Engy Shawkat
+- Hazem Shady
+- Mohamed Aboud
+
+## Additional Source Notes
+
+These notes supplement the sections above with details verified in the current addon files; the existing project notes are kept unchanged.
+
+- The n8n Telegram workflow export is located at `restaurant_management/n8n_workflows/Restaurant Assistant.json` inside this addon.
+- The manifest loads `data/Demo/restaurant_data.xml` as demo data and loads `data/ir_sequence_data.xml` during normal installation.
+- The restaurant role groups and portal/driver record rules are defined in `security/restaurant_security.xml`.
+- The current order-creation API implementation accepts a `lines` payload and creates order-line records. API authentication and validation still need review: the create/list routes use a bearer token hard-coded in the controller, and the monthly sales route does not check authentication.
+- The Excel receipt controller still refers to legacy order-line fields such as `order_line_ids` and `product_id`; the current order model uses `line_ids` and `menu_item_id`. Verify this export before relying on it.

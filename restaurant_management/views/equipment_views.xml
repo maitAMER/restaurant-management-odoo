@@ -26,9 +26,6 @@
         <field name="arch" type="xml">
             <form string="Restaurant Equipment">
                 <header>
-                    <button name="action_view_maintenance" type="object"
-                            string="Maintenance Tickets" class="oe_highlight"
-                            invisible="not id"/>
                     <button name="action_mark_out_of_service" type="object"
                             string="Mark Out of Service" class="btn-danger"
                             invisible="status != 'working'" groups="restaurant_management.group_shift_manager"/>
@@ -39,6 +36,13 @@
                            statusbar_visible="working,under_maintenance,out_of_service" readonly="1"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_maintenance" type="object"
+                                class="oe_stat_button" icon="fa-wrench">
+                            <field name="maintenance_count" widget="statinfo"
+                                   string="Maintenance Tickets"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <label for="name" class="oe_edit_only"/>
                         <h1><field name="name" placeholder="e.g. Commercial Pizza Oven"/></h1>
